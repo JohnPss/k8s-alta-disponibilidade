@@ -262,16 +262,9 @@ spec:
 
 ---
 
-## 8. Divisão do grupo (8 pessoas, 4 duplas)
+## 8. Divisão do grupo
 
-> Sugestão. Trocar nomes à vontade, mas manter as 4 frentes.
-
-| Dupla | Integrantes | Frente | Entregáveis |
-|---|---|---|---|
-| **D1: Infra/Cluster** | João Pedro (coordenação geral), João Vitor | Minikube, Calico, addons, scripts, notebook da apresentação | `scripts/*.sh`, `README.md`, guia de instalação pro grupo |
-| **D2: Aplicação** | Ahmed, Bernardo | API Flask, HTML, Dockerfile | `app/` |
-| **D3: Manifestos K8s** | Luiz, Hugo | Todos os YAMLs, NetworkPolicy, HPA | `k8s/`, `extras/` |
-| **D4: Relatório e Evidências** | Lucas, Thallys | LaTeX, diagramas, coleta de prints e medições, roteiro da demo | `relatorio/`, `docs/ROTEIRO-DEMO.md`, `diagrama.drawio` |
+> ⚠️ A divisão inicial em 4 duplas foi **substituída** pela divisão individual da **seção 15**, que foi feita por nível de experiência e com carga de horas equilibrada.
 
 **Regra:** **todos os 8** instalam o Minikube na própria máquina e rodam o projeto completo pelo menos uma vez (exigência R12).
 
@@ -368,9 +361,9 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 
 | Tempo | Etapa (ordem exigida no PDF) | Quem | Conteúdo |
 |---|---|---|---|
-| 0–8 min | **1. Alinhamento arquitetural** | Lucas, Thallys | Diagrama, papel de cada objeto (Deployment, ReplicaSet, Pod, Service, StatefulSet, PVC, ConfigMap, Secret, NetworkPolicy) e fluxo de dados. |
-| 8–13 min | **2. Deploy** | João Vitor, Luiz | Cluster já no ar: `kubectl get nodes`. Depois `kubectl apply -f k8s/`, `kubectl get all -n ha-demo -w` e explicar o initContainer esperando o Postgres. |
-| 13–33 min | **3. Validação** | Ahmed, Bernardo, Hugo, João Pedro | R4 → R5 → R6 (obrigatórios, **primeiro**). Depois os extras: crash → persistência → NetworkPolicy → HPA → config ao vivo. Sempre mostrar o estado ocioso antes de cada teste. |
+| 0–8 min | **1. Alinhamento arquitetural** | Luiz, Thallys | Diagrama, papel de cada objeto (Deployment, ReplicaSet, Pod, Service, StatefulSet, PVC, ConfigMap, Secret, NetworkPolicy) e fluxo de dados. |
+| 8–13 min | **2. Deploy** | João Vitor, Bernardo | Cluster já no ar: `kubectl get nodes`. Depois `kubectl apply -f k8s/`, `kubectl get all -n ha-demo -w` e explicar o initContainer esperando o Postgres. |
+| 13–33 min | **3. Validação** | Lucas, João Pedro, Ahmed, Hugo | R4 → R5 → R6 (obrigatórios, **primeiro**). Depois os extras: crash → persistência → NetworkPolicy → HPA → config ao vivo. Sempre mostrar o estado ocioso antes de cada teste. |
 | 33–40 min | **4. Arguição** | Todos | Perguntas. Qualquer um pode ser chamado ao terminal. |
 
 **Plano de contingência:**
@@ -437,3 +430,155 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 - ⚠️ **Falha em cascata se o banco cair:** resolvido com a readiness independente do banco.
 
 **Conclusão da checagem:** todos os requisitos obrigatórios da Prática 5, do relatório e da dinâmica de apresentação estão cobertos. Os extras reforçam o critério 1 (3,0 pts) e a arguição (1,5 pts) sem colocar o obrigatório em risco, porque o marco M2 (semana 3) garante o obrigatório antes de qualquer extra.
+
+---
+
+## 15. Divisão de tarefas por integrante
+
+### 15.1 Critérios da divisão
+- **Nível técnico:**
+  - **Nível 1 (João Pedro, Hugo):** ficam com as tarefas mais difíceis, que formam o núcleo técnico (manifestos, dependências, rede, integração da API com o banco).
+  - **Nível 2 (João Vitor, Ahmed, Lucas):** ficam com as tarefas complexas (Postgres/StatefulSet, scripts de medição, HPA, experimentos, validação).
+  - **Nível 3 (Bernardo, Luiz, Thallys):** ficam com as tarefas simples (configuração, testes guiados, diagrama, relatório, entrega).
+- **Tempo equilibrado:** cada pessoa tem **~12,5 a 13 h** de trabalho estimado, contando a instalação do ambiente (2 h). As atividades em grupo (2 ensaios e a apresentação) valem para todos e não entram na conta.
+- **Coerência:** quem constrói uma parte também apresenta e escreve sobre ela. Isso ajuda muito na arguição.
+- **Onde ver:** cada issue tem o responsável no topo e o Project tem os campos **Responsável** e **Horas (est.)**. As atribuições oficiais no GitHub serão feitas com `.github/atribuir-issues.sh` quando todos aceitarem o convite.
+
+### 15.2 Resumo
+
+| Integrante | GitHub | Nível | Papel | Issues | Horas |
+|---|---|---|---|---|---|
+| João Pedro | @JohnPss | 1 | Coordenação + núcleo K8s | #2, #15, #21, #23 | 13 h |
+| Hugo | @hugnarok | 1 | Aplicação (API + banco) | #7, #12, #20, #24 | 13 h |
+| João Vitor | @joaovitor3105 | 2 | Infra, Postgres e scripts | #3, #10, #19, #26, #37 | 12,5 h |
+| Ahmed | @HachemAhmed | 2 | Docker, HPA e medições | #4, #14, #25, #28, #39 | 13 h |
+| Lucas | @Lucas-Roseno | 2 | Validação e roteiro da demo | #8, #17, #28, #30 (Validação), #32 | 13 h |
+| Bernardo | @BernardoSilvaAndrade | 3 | Página web, config e testes | #5, #13, #16, #18, #22, #30 (Tecnologias) | 13 h |
+| Luiz | @LuizFernandosq | 3 | Relatório (base) e diagrama | #6, #11, #27, #29, #30 (Arquitetura), #31 | 12,5 h |
+| Thallys | @Thallys-Lamounier | 3 | Relatório (texto final) e entrega | #9, #30 (Intro/Conclusão), #31, #34, #36, #38 | 13 h |
+| **Todos** | | | Ensaios e apresentação | #33, #35, #40 | |
+
+### 15.3 Detalhamento por pessoa
+
+#### João Pedro (@JohnPss): coordenação + núcleo Kubernetes (13 h)
+| Issue | Tarefa | Semana | Complex. | Horas |
+|---|---|---|---|---|
+| #2 | Instalar ambiente local | S1 | Simples | 2 |
+| #15 | Manifestos base: Namespace, Deployment `replicas: 3`, Service NodePort | S3 | Difícil | 4 |
+| #21 | Deployment completo: initContainer, envFrom, Downward API, probes, resources | S4 | Difícil | 4 |
+| #23 | NetworkPolicy (Calico) e teste do pod intruso | S5 | Difícil | 3 |
+
+- **Também:** revisar os PRs de manifestos, destravar quem estiver bloqueado e acompanhar o Board toda semana.
+- **Depende de:** #12/#14 (imagem da API) para a #15, e #18/#19 para a #21.
+- **Na apresentação:** self-healing (R5), liveness e NetworkPolicy.
+
+#### Hugo (@hugnarok): aplicação (13 h)
+| Issue | Tarefa | Semana | Complex. | Horas |
+|---|---|---|---|---|
+| #7 | Instalar ambiente local | S1 | Simples | 2 |
+| #12 | API Flask base (`/`, `/api/whoami`, `/healthz`, `/readyz`, `Connection: close`) | S2 | Média | 4 |
+| #20 | Integrar API com Postgres (tabela `visits`, tolerância a falha, readiness independente do banco) | S4 | Difícil | 5 |
+| #24 | Endpoints `/api/crash` e `/api/cpu` | S5 | Média | 2 |
+
+- **Também:** dar suporte ao Bernardo na página HTML (#13) e ao Ahmed no Dockerfile (#14).
+- **Na apresentação:** crash e liveness, e a config ao vivo (rolling update com a cor mudando).
+
+#### João Vitor (@joaovitor3105): infra, Postgres e scripts (12,5 h)
+| Issue | Tarefa | Semana | Complex. | Horas |
+|---|---|---|---|---|
+| #3 | Instalar ambiente local | S1 | Simples | 2 |
+| #10 | `setup-cluster.sh` e registro de versões | S1 | Média | 2 |
+| #19 | Postgres: Service headless + StatefulSet + PVC | S4 | Difícil | 4 |
+| #26 | Scripts `traffic.sh`, `measure-selfheal.sh`, `reset.sh` | S5 | Média | 4 |
+| #37 | Tag v1.0 e congelar repositório | S8 | Simples | 0,5 |
+
+- **Também:** ajudar os colegas na instalação do Minikube (S1).
+- **Na apresentação:** deploy ao vivo (`kubectl apply`, initContainer esperando o Postgres).
+
+#### Ahmed (@HachemAhmed): Docker, HPA e medições (13 h)
+| Issue | Tarefa | Semana | Complex. | Horas |
+|---|---|---|---|---|
+| #4 | Instalar ambiente local | S1 | Simples | 2 |
+| #14 | Dockerfile (não-root) e build no Minikube | S2 | Média | 2 |
+| #25 | HPA em `extras/` e `load-hpa.sh` | S5 | Difícil | 3 |
+| #28 | Experimentos 5× e tabelas (responsável principal) | S6 | Média | 4 |
+| #39 | Preparar o notebook da apresentação (e o reserva) | Apres. | Média | 2 |
+
+- **Na apresentação:** escala 3 → 10 (R6) e HPA.
+
+#### Lucas (@Lucas-Roseno): validação e roteiro da demo (13 h)
+| Issue | Tarefa | Semana | Complex. | Horas |
+|---|---|---|---|---|
+| #8 | Instalar ambiente local | S1 | Simples | 2 |
+| #17 | Marco M2: validar R4, R5, R6 e primeiros prints | S3 | Média | 3 |
+| #28 | Experimentos 5× (apoio: conferir e montar gráficos/tabelas) | S6 | Média | 1 |
+| #30 | Relatório: seção **Execução e Validação Experimental** | S6 | Média | 4 |
+| #32 | Roteiro final da demo (`docs/ROTEIRO-DEMO.md`) | S7 | Média | 3 |
+
+- **Também:** conduzir os ensaios (#33, #35) com o roteiro em mãos e cronometrar.
+- **Na apresentação:** abertura da validação (R4, com o navegador alternando entre os pods) e condução do roteiro.
+
+#### Bernardo (@BernardoSilvaAndrade): página web, config e testes (13 h)
+| Issue | Tarefa | Semana | Complex. | Horas |
+|---|---|---|---|---|
+| #5 | Instalar ambiente local | S1 | Simples | 2 |
+| #13 | Página HTML com auto-refresh e cor do ConfigMap | S2 | Simples | 3 |
+| #16 | Script `deploy.sh` | S3 | Simples | 1 |
+| #18 | ConfigMap e Secret | S4 | Simples | 1,5 |
+| #22 | Teste de persistência (deletar `postgres-0`) + prints | S4 | Simples | 1,5 |
+| #30 | Relatório: seção **Tecnologias Utilizadas** | S6 | Simples | 4 |
+
+- **Na apresentação:** deploy junto com o João Vitor, e demo de persistência.
+
+#### Luiz (@LuizFernandosq): relatório (base) e diagrama (12,5 h)
+| Issue | Tarefa | Semana | Complex. | Horas |
+|---|---|---|---|---|
+| #6 | Instalar ambiente local | S1 | Simples | 2 |
+| #11 | Esqueleto do relatório LaTeX (6 seções) | S1 | Simples | 2 |
+| #27 | Pré-carregar imagens (demo offline) | S5 | Simples | 1,5 |
+| #29 | Diagrama final da arquitetura (draw.io) | S6 | Simples | 3 |
+| #30 | Relatório: seção **Mapeamento da Solução e Arquitetura** | S6 | Simples | 3 |
+| #31 | Revisão cruzada (revisa as seções do Lucas e do Thallys) | S6 | Simples | 1 |
+
+- **Na apresentação:** alinhamento arquitetural (diagrama e papel de cada objeto).
+
+#### Thallys (@Thallys-Lamounier): relatório (texto final) e entrega (13 h)
+| Issue | Tarefa | Semana | Complex. | Horas |
+|---|---|---|---|---|
+| #9 | Instalar ambiente local | S1 | Simples | 2 |
+| #30 | Relatório: **Introdução** e **Conclusão** | S6 | Simples | 3,5 |
+| #31 | Revisão cruzada (revisa as seções do Luiz e do Bernardo) | S6 | Simples | 1 |
+| #34 | Gravar vídeo sem cortes (plano B) | S7 | Simples | 2 |
+| #36 | Revisão final e compilação do relatório | S8 | Média | 4 |
+| #38 | Entrega do trabalho (21/11) | S8 | Simples | 0,5 |
+
+- **Na apresentação:** alinhamento arquitetural (introdução do problema e fluxo de dados), junto com o Luiz.
+
+#### Todos
+| Issue | Atividade | Data |
+|---|---|---|
+| #33 | Ensaio geral 1 + arguição simulada | 11/11 |
+| #35 | Ensaio geral 2 com rodízio no terminal | 14–15/11 |
+| #40 | Apresentação (live demo) | 23/11 |
+
+- **Estudar** a seção 12 (perguntas da arguição). Qualquer um pode ser chamado ao terminal.
+- Revisar pelo menos **um PR** de outra pessoa por semana.
+
+### 15.4 Cadeia de dependências (quem espera quem)
+```mermaid
+flowchart LR
+    H12["#12 API base<br/>Hugo"] --> A14["#14 Docker<br/>Ahmed"] --> JP15["#15 Manifestos base<br/>João Pedro"]
+    B16["#16 deploy.sh<br/>Bernardo"] --> L17
+    JP15 --> L17["#17 Marco M2<br/>Lucas"]
+    B18["#18 ConfigMap/Secret<br/>Bernardo"] --> JP21["#21 Deployment completo<br/>João Pedro"]
+    JV19["#19 Postgres<br/>João Vitor"] --> H20["#20 API + banco<br/>Hugo"] --> JP21
+    JP21 --> B22["#22 Persistência<br/>Bernardo"]
+    JP21 --> JP23["#23 NetworkPolicy<br/>João Pedro"]
+    H24["#24 crash/cpu<br/>Hugo"] --> A25["#25 HPA<br/>Ahmed"]
+    JV26["#26 scripts<br/>João Vitor"] --> A28["#28 Experimentos<br/>Ahmed + Lucas"]
+    A25 --> A28
+    A28 --> R30["#30 Relatório<br/>Lucas, Bernardo, Luiz, Thallys"]
+    L29["#29 Diagrama<br/>Luiz"] --> R30
+    R30 --> T36["#36 Revisão final<br/>Thallys"] --> T38["#38 Entrega 21/11<br/>Thallys"]
+```
+
