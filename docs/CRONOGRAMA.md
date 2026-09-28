@@ -7,14 +7,14 @@ Linha do tempo do trabalho (Prática 5, Kubernetes). A fonte da verdade do andam
 ```mermaid
 flowchart LR
     S1["S1 · Setup<br/>28/09–04/10"] --> S2["S2 · Aplicação<br/>05/10–11/10"]
-    S2 --> S3["S3 · Marco M2<br/>12/10–18/10<br/>✅ obrigatório pronto"]
+    S2 --> S3["S3 · Marco M2<br/>12/10–18/10<br/>obrigatório pronto"]
     S3 --> S4["S4 · Estado e config<br/>19/10–25/10"]
     S4 --> S5["S5 · Rede e extras<br/>26/10–01/11"]
     S3 -. prints R4/R5/R6 .-> S6
     S5 --> S6["S6 · Evidências e relatório<br/>02/11–08/11"]
     S6 --> S7["S7 · Ensaios + vídeo<br/>09/11–15/11"]
     S7 --> S8["S8 · Entrega<br/>21/11"]
-    S8 --> AP(["🎤 Apresentação<br/>23/11"])
+    S8 --> AP(["Apresentação<br/>23/11"])
     style S3 fill:#2ecc71,color:#000
     style S8 fill:#e67e22,color:#000
     style AP fill:#e74c3c,color:#fff
@@ -48,8 +48,8 @@ gantt
     Postgres - Service headless + StatefulSet + PVC :2026-10-19, 2026-10-23
     Integrar API com o banco (tabela visits) :2026-10-20, 2026-10-25
     Deployment completo - initContainer, envFrom, probes, resources :2026-10-22, 2026-10-26
-    Teste de persistência (deletar postgres-0) :2026-10-24, 2026-10-26
     section S5 · Rede e extras
+    Teste de persistência (deletar postgres-0) :2026-10-26, 2026-10-28
     NetworkPolicy e teste do pod intruso :2026-10-26, 2026-10-29
     Endpoints /api/crash e /api/cpu :2026-10-26, 2026-10-29
     HPA em extras/ e script load-hpa.sh :2026-10-28, 2026-11-01
@@ -58,8 +58,8 @@ gantt
     section S6 · Evidências e relatório
     Experimentos 5× e tabelas de medições :2026-11-02, 2026-11-07
     Diagrama final da arquitetura :2026-11-02, 2026-11-05
-    Redigir seções 1–5 do relatório :2026-11-02, 2026-11-09
-    Revisão cruzada do relatório :2026-11-06, 2026-11-09
+    Redigir seções 1–5 do relatório :2026-11-02, 2026-11-08
+    Revisão cruzada do relatório :2026-11-08, 2026-11-09
     section S7 · Ensaios
     Roteiro da demo final (docs/ROTEIRO-DEMO.md) :2026-11-09, 2026-11-11
     Ensaio geral 1 + arguição simulada :2026-11-11, 2026-11-12

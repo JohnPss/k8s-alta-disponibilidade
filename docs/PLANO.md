@@ -54,7 +54,7 @@ O que é **obrigatório** pelo PDF está marcado com **[OBRIGATÓRIO]**. O resta
 | Recursos | `requests` 100m CPU / 64Mi, `limits` 250m / 128Mi | Sem limites | Liga com o conteúdo de SO (cgroups, contenção). Garante que 10 réplicas cabem no nó e é pré-requisito do HPA. |
 | Isolamento | **Namespace `ha-demo`** | `default` | Organização e limpeza fácil (`kubectl delete ns ha-demo`). |
 | Rede interna | **NetworkPolicy**: só pods `app=api` acessam `postgres:5432` | Sem política | Mostra isolamento de rede entre componentes. |
-| Autoscaling | **HPA** (3 a 10 pods, CPU 50%) como **extra separado** em `extras/` | HPA junto dos manifestos base | ⚠️ Com o HPA ativo, o `kubectl scale --replicas=10` do roteiro obrigatório **seria desfeito** e ele voltaria a 3. Por isso ele só é aplicado **depois** da validação obrigatória. |
+| Autoscaling | **HPA** (3 a 10 pods, CPU 50%) como **extra separado** em `extras/` | HPA junto dos manifestos base | Com o HPA ativo, o `kubectl scale --replicas=10` do roteiro obrigatório **seria desfeito** e ele voltaria a 3. Por isso ele só é aplicado **depois** da validação obrigatória. |
 | Imagem | Build **dentro do Minikube** (`minikube image build`), tag fixa `api:1.0`, `imagePullPolicy: IfNotPresent` | Docker Hub | Não depende de internet nem de registry na hora da apresentação. |
 | Distribuição da carga no navegador | API responde com header `Connection: close` | Padrão keep-alive | O kube-proxy balanceia **por conexão**. Com keep-alive o navegador ficaria preso num pod só. Assim cada requisição pode cair num pod diferente. |
 | Aplicação dos manifestos | `kubectl apply -f k8s/` com arquivos numerados | Helm / Kustomize | É simples, transparente e fácil de explicar na arguição. |
@@ -65,7 +65,7 @@ O que é **obrigatório** pelo PDF está marcado com **[OBRIGATÓRIO]**. O resta
 
 ```mermaid
 flowchart TB
-    user(["🌐 Navegador / curl (host)"])
+    user(["Navegador / curl (host)"])
 
     subgraph cluster["Cluster Minikube (1 nó, CNI Calico)"]
         subgraph ns["Namespace: ha-demo"]
@@ -264,7 +264,7 @@ spec:
 
 ## 8. Divisão do grupo
 
-> ⚠️ A divisão inicial em 4 duplas foi **substituída** pela divisão individual da **seção 15**, que foi feita por nível de experiência e com carga de horas equilibrada.
+> A divisão inicial em 4 duplas foi **substituída** pela divisão individual da **seção 15**, que foi feita por nível de experiência e com carga de horas equilibrada.
 
 **Regra:** **todos os 8** instalam o Minikube na própria máquina e rodam o projeto completo pelo menos uma vez (exigência R12).
 
@@ -295,7 +295,7 @@ Hoje é 28/09. São 8 semanas até a entrega em 21/11.
 - [ ] D3: `00-namespace`, `30-api-deployment` (sem initContainer e sem envFrom por enquanto) e `31-api-service`.
 - [ ] D1: `scripts/deploy.sh`.
 - [ ] **Validar R4, R5 e R6** (seção 10) e tirar os primeiros prints.
-- [ ] ✅ **A partir daqui a validação obrigatória já está garantida.**
+- [ ] **A partir daqui a validação obrigatória já está garantida.**
 
 ### Semana 4 (19/10 – 25/10): Estado, configuração e dependência
 - [ ] D3: ConfigMap, Secret, Service e StatefulSet do Postgres (com PVC).
@@ -408,26 +408,26 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 
 | Requisito do PDF | Atendido? | Onde no plano |
 |---|---|---|
-| R1: cluster local (Minikube/KinD/K3s) | ✅ Minikube | Seções 3 e 9 (S1) |
-| R2: Deployment com app web, `replicas: 3` | ✅ | Seção 6.3 (`replicas: 3`) |
-| R3: Service NodePort/LoadBalancer com balanceamento interno e acesso no navegador | ✅ NodePort 30080 | Seção 6.3 |
-| R4: acessar no navegador pela porta do Service | ✅ | Seção 10 |
-| R5: `kubectl delete pod` com recriação mostrada em tempo real | ✅ `watch` + eventos | Seção 10 |
-| R6: `kubectl scale ... --replicas=10` ao vivo | ✅ (HPA desligado nesse momento) | Seções 3 e 10 |
-| R7: relatório LaTeX com as 6 seções | ✅ | Seção 13 |
-| R8: GitHub com YAMLs e código | ✅ | Seção 5 |
-| R9: redes / volumes / réplicas / env / dependências | ✅ NetworkPolicy + Services / PVC / replicas / ConfigMap + Secret / initContainer | Seções 3 e 6.3 |
-| R10: ordem da apresentação e 40 min | ✅ 8 + 5 + 20 + 7 min | Seção 11 |
-| R11: infra pré-instalada antes da apresentação | ✅ | Seções 9 (S8) e 11 |
-| R12: todos operam o terminal / arguição | ✅ todos instalam, rodízio nos ensaios, lista de perguntas | Seções 8, 9 e 12 |
-| Datas: entrega 21/11, apresentação 23/11 | ✅ | Seção 9 |
+| R1: cluster local (Minikube/KinD/K3s) | Sim: Minikube | Seções 3 e 9 (S1) |
+| R2: Deployment com app web, `replicas: 3` | Sim | Seção 6.3 (`replicas: 3`) |
+| R3: Service NodePort/LoadBalancer com balanceamento interno e acesso no navegador | Sim: NodePort 30080 | Seção 6.3 |
+| R4: acessar no navegador pela porta do Service | Sim | Seção 10 |
+| R5: `kubectl delete pod` com recriação mostrada em tempo real | Sim: `watch` + eventos | Seção 10 |
+| R6: `kubectl scale ... --replicas=10` ao vivo | Sim: (HPA desligado nesse momento) | Seções 3 e 10 |
+| R7: relatório LaTeX com as 6 seções | Sim | Seção 13 |
+| R8: GitHub com YAMLs e código | Sim | Seção 5 |
+| R9: redes / volumes / réplicas / env / dependências | Sim: NetworkPolicy + Services / PVC / replicas / ConfigMap + Secret / initContainer | Seções 3 e 6.3 |
+| R10: ordem da apresentação e 40 min | Sim: 8 + 5 + 20 + 7 min | Seção 11 |
+| R11: infra pré-instalada antes da apresentação | Sim | Seções 9 (S8) e 11 |
+| R12: todos operam o terminal / arguição | Sim: todos instalam, rodízio nos ensaios, lista de perguntas | Seções 8, 9 e 12 |
+| Datas: entrega 21/11, apresentação 23/11 | Sim | Seção 9 |
 
 **Pontos de atenção identificados:**
-- ⚠️ **HPA × `kubectl scale`:** resolvido deixando o HPA em `extras/`, aplicado só depois do R6.
-- ⚠️ **Navegador preso num pod** (keep-alive): resolvido com `Connection: close` e o `traffic.sh` com curl.
-- ⚠️ **NetworkPolicy ignorada** na CNI padrão: resolvido com `--cni=calico`.
-- ⚠️ **Falta de internet na sala:** resolvido com imagens pré-carregadas no Minikube.
-- ⚠️ **Falha em cascata se o banco cair:** resolvido com a readiness independente do banco.
+- **HPA × `kubectl scale`:** resolvido deixando o HPA em `extras/`, aplicado só depois do R6.
+- **Navegador preso num pod** (keep-alive): resolvido com `Connection: close` e o `traffic.sh` com curl.
+- **NetworkPolicy ignorada** na CNI padrão: resolvido com `--cni=calico`.
+- **Falta de internet na sala:** resolvido com imagens pré-carregadas no Minikube.
+- **Falha em cascata se o banco cair:** resolvido com a readiness independente do banco.
 
 **Conclusão da checagem:** todos os requisitos obrigatórios da Prática 5, do relatório e da dinâmica de apresentação estão cobertos. Os extras reforçam o critério 1 (3,0 pts) e a arguição (1,5 pts) sem colocar o obrigatório em risco, porque o marco M2 (semana 3) garante o obrigatório antes de qualquer extra.
 
@@ -525,7 +525,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 | #13 | Página HTML com auto-refresh e cor do ConfigMap | S2 | Simples | 3 |
 | #16 | Script `deploy.sh` | S3 | Simples | 1 |
 | #18 | ConfigMap e Secret | S4 | Simples | 1,5 |
-| #22 | Teste de persistência (deletar `postgres-0`) + prints | S4 | Simples | 1,5 |
+| #22 | Teste de persistência (deletar `postgres-0`) + prints | S5 | Simples | 1,5 |
 | #30 | Relatório: seção **Tecnologias Utilizadas** | S6 | Simples | 4 |
 
 - **Na apresentação:** deploy junto com o João Vitor, e demo de persistência.
@@ -582,3 +582,22 @@ flowchart LR
     R30 --> T36["#36 Revisão final<br/>Thallys"] --> T38["#38 Entrega 21/11<br/>Thallys"]
 ```
 
+
+---
+
+## 16. Fluxo de desenvolvimento e autonomia
+
+- **Cada issue é autossuficiente:** objetivo, por que importa, o que você vai aprender, dependências (bloqueada por / bloqueia), como começar sem esperar, entregáveis, passo a passo, como testar, critério de pronto, material de apoio, dicas e revisor.
+- **Contratos:** [`CONTRATOS.md`](CONTRATOS.md) fixa nomes, portas, variáveis, rotas, formato de CSV e arquivos do relatório. Com isso cada um trabalha em paralelo usando mocks e stubs, sem esperar ninguém.
+- **Fluxo:** [`FLUXO.md`](FLUXO.md) descreve o ciclo branch → PR → revisão → merge, quem revisa quem, o ritmo semanal e o que fazer quando travar.
+- **Dependências nativas do GitHub:** cada issue mostra "Blocked by" na lateral. Todas as tarefas bloqueadas têm uma alternativa para começar antes.
+- **Ajustes de calendário feitos na análise:**
+  - #22 (persistência) foi para a **S5** (26–27/10), porque depende da #21, que termina em 25/10.
+  - #30 (redação) termina em **07/11**.
+  - #31 (revisão cruzada) fica em **08/11**, para não revisar texto inacabado.
+
+### Caminho crítico
+`#12 API` → `#14 Docker` → `#15 manifestos` → `#17 Marco M2` (obrigatório garantido em 18/10)
+`#19 Postgres` → `#20 API+banco` → `#21 Deployment completo` → `#28 experimentos` → `#30 relatório` → `#31` → `#36` → `#38 entrega`
+
+Atrasos nessas issues atrasam o grupo inteiro. Elas estão com os níveis 1 e 2 por isso.
