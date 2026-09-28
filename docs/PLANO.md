@@ -448,22 +448,22 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 
 | Integrante | GitHub | Nível | Papel | Issues | Horas |
 |---|---|---|---|---|---|
-| João Pedro | @JohnPss | 1 | Coordenação + núcleo K8s | #2, #15, #21, #23 | 13 h |
-| Hugo | @hugnarok | 1 | Aplicação (API + banco) | #7, #12, #20, #24 | 13 h |
-| João Vitor | @joaovitor3105 | 2 | Infra, Postgres e scripts | #3, #10, #19, #26, #37 | 12,5 h |
-| Ahmed | @HachemAhmed | 2 | Docker, HPA e medições | #4, #14, #25, #28, #39 | 13 h |
-| Lucas | @Lucas-Roseno | 2 | Validação e roteiro da demo | #8, #17, #28, #30 (Validação), #32 | 13 h |
-| Bernardo | @BernardoSilvaAndrade | 3 | Página web, config e testes | #5, #13, #16, #18, #22, #30 (Tecnologias) | 13 h |
-| Luiz | @LuizFernandosq | 3 | Relatório (base) e diagrama | #6, #11, #27, #29, #30 (Arquitetura), #31 | 12,5 h |
-| Thallys | @Thallys-Lamounier | 3 | Relatório (texto final) e entrega | #9, #30 (Intro/Conclusão), #31, #34, #36, #38 | 13 h |
-| **Todos** | | | Ensaios e apresentação | #33, #35, #40 | |
+| João Pedro | @JohnPss | 1 | Coordenação + núcleo K8s | #15, #21, #23 | 13 h |
+| Hugo | @hugnarok | 1 | Aplicação (API + banco) | #12, #20, #24 | 13 h |
+| João Vitor | @joaovitor3105 | 2 | Infra, Postgres e scripts | #10, #19, #26, #37 | 12,5 h |
+| Ahmed | @HachemAhmed | 2 | Docker, HPA e medições | #14, #25, #28, #39 | 13 h |
+| Lucas | @Lucas-Roseno | 2 | Validação e roteiro da demo | #17, #28, #30 (Validação), #32 | 13 h |
+| Bernardo | @BernardoSilvaAndrade | 3 | Página web, config e testes | #13, #16, #18, #22, #30 (Tecnologias) | 13 h |
+| Luiz | @LuizFernandosq | 3 | Relatório (base) e diagrama | #11, #27, #29, #30 (Arquitetura), #31 | 12,5 h |
+| Thallys | @Thallys-Lamounier | 3 | Relatório (texto final) e entrega | #30 (Intro/Conclusão), #31, #34, #36, #38 | 13 h |
+| **Todos** | | | Instalação, ensaios e apresentação | #2, #33, #35, #40 | 2 h cada na #2 (já somadas acima) |
 
 ### 15.3 Detalhamento por pessoa
 
 #### João Pedro (@JohnPss): coordenação + núcleo Kubernetes (13 h)
 | Issue | Tarefa | Semana | Complex. | Horas |
 |---|---|---|---|---|
-| #2 | Instalar ambiente local | S1 | Simples | 2 |
+| #2 | Instalar ambiente local (sua parte do checklist) | S1 | Simples | 2 |
 | #15 | Manifestos base: Namespace, Deployment `replicas: 3`, Service NodePort | S3 | Difícil | 4 |
 | #21 | Deployment completo: initContainer, envFrom, Downward API, probes, resources | S4 | Difícil | 4 |
 | #23 | NetworkPolicy (Calico) e teste do pod intruso | S5 | Difícil | 3 |
@@ -475,7 +475,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 #### Hugo (@hugnarok): aplicação (13 h)
 | Issue | Tarefa | Semana | Complex. | Horas |
 |---|---|---|---|---|
-| #7 | Instalar ambiente local | S1 | Simples | 2 |
+| #2 | Instalar ambiente local (sua parte do checklist) | S1 | Simples | 2 |
 | #12 | API Flask base (`/`, `/api/whoami`, `/healthz`, `/readyz`, `Connection: close`) | S2 | Média | 4 |
 | #20 | Integrar API com Postgres (tabela `visits`, tolerância a falha, readiness independente do banco) | S4 | Difícil | 5 |
 | #24 | Endpoints `/api/crash` e `/api/cpu` | S5 | Média | 2 |
@@ -486,7 +486,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 #### João Vitor (@joaovitor3105): infra, Postgres e scripts (12,5 h)
 | Issue | Tarefa | Semana | Complex. | Horas |
 |---|---|---|---|---|
-| #3 | Instalar ambiente local | S1 | Simples | 2 |
+| #2 | Instalar ambiente local (sua parte do checklist) | S1 | Simples | 2 |
 | #10 | `setup-cluster.sh` e registro de versões | S1 | Média | 2 |
 | #19 | Postgres: Service headless + StatefulSet + PVC | S4 | Difícil | 4 |
 | #26 | Scripts `traffic.sh`, `measure-selfheal.sh`, `reset.sh` | S5 | Média | 4 |
@@ -498,7 +498,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 #### Ahmed (@HachemAhmed): Docker, HPA e medições (13 h)
 | Issue | Tarefa | Semana | Complex. | Horas |
 |---|---|---|---|---|
-| #4 | Instalar ambiente local | S1 | Simples | 2 |
+| #2 | Instalar ambiente local (sua parte do checklist) | S1 | Simples | 2 |
 | #14 | Dockerfile (não-root) e build no Minikube | S2 | Média | 2 |
 | #25 | HPA em `extras/` e `load-hpa.sh` | S5 | Difícil | 3 |
 | #28 | Experimentos 5× e tabelas (responsável principal) | S6 | Média | 4 |
@@ -509,7 +509,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 #### Lucas (@Lucas-Roseno): validação e roteiro da demo (13 h)
 | Issue | Tarefa | Semana | Complex. | Horas |
 |---|---|---|---|---|
-| #8 | Instalar ambiente local | S1 | Simples | 2 |
+| #2 | Instalar ambiente local (sua parte do checklist) | S1 | Simples | 2 |
 | #17 | Marco M2: validar R4, R5, R6 e primeiros prints | S3 | Média | 3 |
 | #28 | Experimentos 5× (apoio: conferir e montar gráficos/tabelas) | S6 | Média | 1 |
 | #30 | Relatório: seção **Execução e Validação Experimental** | S6 | Média | 4 |
@@ -521,7 +521,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 #### Bernardo (@BernardoSilvaAndrade): página web, config e testes (13 h)
 | Issue | Tarefa | Semana | Complex. | Horas |
 |---|---|---|---|---|
-| #5 | Instalar ambiente local | S1 | Simples | 2 |
+| #2 | Instalar ambiente local (sua parte do checklist) | S1 | Simples | 2 |
 | #13 | Página HTML com auto-refresh e cor do ConfigMap | S2 | Simples | 3 |
 | #16 | Script `deploy.sh` | S3 | Simples | 1 |
 | #18 | ConfigMap e Secret | S4 | Simples | 1,5 |
@@ -533,7 +533,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 #### Luiz (@LuizFernandosq): relatório (base) e diagrama (12,5 h)
 | Issue | Tarefa | Semana | Complex. | Horas |
 |---|---|---|---|---|
-| #6 | Instalar ambiente local | S1 | Simples | 2 |
+| #2 | Instalar ambiente local (sua parte do checklist) | S1 | Simples | 2 |
 | #11 | Esqueleto do relatório LaTeX (6 seções) | S1 | Simples | 2 |
 | #27 | Pré-carregar imagens (demo offline) | S5 | Simples | 1,5 |
 | #29 | Diagrama final da arquitetura (draw.io) | S6 | Simples | 3 |
@@ -545,7 +545,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 #### Thallys (@Thallys-Lamounier): relatório (texto final) e entrega (13 h)
 | Issue | Tarefa | Semana | Complex. | Horas |
 |---|---|---|---|---|
-| #9 | Instalar ambiente local | S1 | Simples | 2 |
+| #2 | Instalar ambiente local (sua parte do checklist) | S1 | Simples | 2 |
 | #30 | Relatório: **Introdução** e **Conclusão** | S6 | Simples | 3,5 |
 | #31 | Revisão cruzada (revisa as seções do Luiz e do Bernardo) | S6 | Simples | 1 |
 | #34 | Gravar vídeo sem cortes (plano B) | S7 | Simples | 2 |
@@ -557,6 +557,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 #### Todos
 | Issue | Atividade | Data |
 |---|---|---|
+| #2 | Instalar ambiente local (checklist com os 8 nomes; cada um comenta seu print) | até 04/10 |
 | #33 | Ensaio geral 1 + arguição simulada | 11/11 |
 | #35 | Ensaio geral 2 com rodízio no terminal | 14–15/11 |
 | #40 | Apresentação (live demo) | 23/11 |
@@ -591,6 +592,7 @@ flowchart LR
 - **Contratos:** [`CONTRATOS.md`](CONTRATOS.md) fixa nomes, portas, variáveis, rotas, formato de CSV e arquivos do relatório. Com isso cada um trabalha em paralelo usando mocks e stubs, sem esperar ninguém.
 - **Fluxo:** [`FLUXO.md`](FLUXO.md) descreve o ciclo branch → PR → revisão → merge, quem revisa quem, o ritmo semanal e o que fazer quando travar.
 - **Dependências nativas do GitHub:** cada issue mostra "Blocked by" na lateral. Todas as tarefas bloqueadas têm uma alternativa para começar antes.
+- **Instalação condensada:** as antigas #3–#9 foram fechadas como duplicadas da **#2**, que agora é uma issue só para os 8, com checklist por pessoa.
 - **Ajustes de calendário feitos na análise:**
   - #22 (persistência) foi para a **S5** (26–27/10), porque depende da #21, que termina em 25/10.
   - #30 (redação) termina em **07/11**.

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Atribui as issues aos responsáveis definidos em docs/PLANO.md §15.
-# Rodar depois que todos aceitarem o convite do repositório. Seguro para rodar várias vezes.
+# Seguro para rodar várias vezes.
 set -u
 REPO=JohnPss/k8s-alta-disponibilidade
 
 gh issue edit 1 -R "$REPO" --add-assignee JohnPss >/dev/null 2>&1 || echo "#1: JohnPss ainda não aceitou o convite"
 gh issue edit 2 -R "$REPO" --add-assignee JohnPss >/dev/null 2>&1 || echo "#2: JohnPss ainda não aceitou o convite"
-gh issue edit 3 -R "$REPO" --add-assignee joaovitor3105 >/dev/null 2>&1 || echo "#3: joaovitor3105 ainda não aceitou o convite"
-gh issue edit 4 -R "$REPO" --add-assignee HachemAhmed >/dev/null 2>&1 || echo "#4: HachemAhmed ainda não aceitou o convite"
-gh issue edit 5 -R "$REPO" --add-assignee BernardoSilvaAndrade >/dev/null 2>&1 || echo "#5: BernardoSilvaAndrade ainda não aceitou o convite"
-gh issue edit 6 -R "$REPO" --add-assignee LuizFernandosq >/dev/null 2>&1 || echo "#6: LuizFernandosq ainda não aceitou o convite"
-gh issue edit 7 -R "$REPO" --add-assignee hugnarok >/dev/null 2>&1 || echo "#7: hugnarok ainda não aceitou o convite"
-gh issue edit 8 -R "$REPO" --add-assignee Lucas-Roseno >/dev/null 2>&1 || echo "#8: Lucas-Roseno ainda não aceitou o convite"
-gh issue edit 9 -R "$REPO" --add-assignee Thallys-Lamounier >/dev/null 2>&1 || echo "#9: Thallys-Lamounier ainda não aceitou o convite"
+gh issue edit 2 -R "$REPO" --add-assignee hugnarok >/dev/null 2>&1 || echo "#2: hugnarok ainda não aceitou o convite"
+gh issue edit 2 -R "$REPO" --add-assignee joaovitor3105 >/dev/null 2>&1 || echo "#2: joaovitor3105 ainda não aceitou o convite"
+gh issue edit 2 -R "$REPO" --add-assignee HachemAhmed >/dev/null 2>&1 || echo "#2: HachemAhmed ainda não aceitou o convite"
+gh issue edit 2 -R "$REPO" --add-assignee Lucas-Roseno >/dev/null 2>&1 || echo "#2: Lucas-Roseno ainda não aceitou o convite"
+gh issue edit 2 -R "$REPO" --add-assignee BernardoSilvaAndrade >/dev/null 2>&1 || echo "#2: BernardoSilvaAndrade ainda não aceitou o convite"
+gh issue edit 2 -R "$REPO" --add-assignee LuizFernandosq >/dev/null 2>&1 || echo "#2: LuizFernandosq ainda não aceitou o convite"
+gh issue edit 2 -R "$REPO" --add-assignee Thallys-Lamounier >/dev/null 2>&1 || echo "#2: Thallys-Lamounier ainda não aceitou o convite"
 gh issue edit 10 -R "$REPO" --add-assignee joaovitor3105 >/dev/null 2>&1 || echo "#10: joaovitor3105 ainda não aceitou o convite"
 gh issue edit 11 -R "$REPO" --add-assignee LuizFernandosq >/dev/null 2>&1 || echo "#11: LuizFernandosq ainda não aceitou o convite"
 gh issue edit 12 -R "$REPO" --add-assignee hugnarok >/dev/null 2>&1 || echo "#12: hugnarok ainda não aceitou o convite"
