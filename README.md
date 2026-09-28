@@ -11,7 +11,7 @@ Subir num cluster Kubernetes local (Minikube) uma API web com 3 réplicas expost
 ## Documentos
 - [Plano completo](docs/PLANO.md): decisões de arquitetura, metodologia e checklist de conformidade
 - [Cronograma](docs/CRONOGRAMA.md): fluxo das fases e Gantt
-- **Kanban / Roadmap:** aba *Projects* deste repositório
+- [Kanban e linha do tempo (GitHub Project)](https://github.com/users/JohnPss/projects/1)
 
 ## Estrutura
 ```
