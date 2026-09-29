@@ -1,0 +1,55 @@
+# Garante o fluxo do grupo em todo PR para a main (ver docs/FLUXO.md):
+# - branch no formato <numero-da-issue>-descricao, de uma issue ABERTA
+# - título do PR começa com "#N " e a descrição tem "Closes #N" (corrigidos automaticamente)
+name: regras-do-pr
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  issues: read
+  pull-requests: write
+
+jobs:
+  regras-do-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const branch = pr.head.ref;
+            const ajuda = "Crie a branch pela issue: barra lateral > Development > Create a branch, " +
+                          "ou no terminal: gh issue develop <N> --checkout. Veja docs/FLUXO.md.";
+
+            const m = branch.match(/^(\d+)-\S+$/);
+            if (!m) {
+              core.setFailed(`Nome de branch inválido: "${branch}". Use <numero-da-issue>-descricao, ex.: 12-api-base. ${ajuda}`);
+              return;
+            }
+            const n = Number(m[1]);
+
+            let issue;
+            try {
+              ({ data: issue } = await github.rest.issues.get({ ...context.repo, issue_number: n }));
+            } catch {
+              core.setFailed(`A branch aponta para a issue #${n}, que não existe. ${ajuda}`);
+              return;
+            }
+            if (issue.pull_request) { core.setFailed(`#${n} é um PR, não uma issue. ${ajuda}`); return; }
+            if (issue.state !== "open") { core.setFailed(`A issue #${n} está fechada. Reabra-a ou use a issue correta.`); return; }
+
+            // Correções automáticas: título "#N ..." e "Closes #N" na descrição
+            const update = {};
+            if (!new RegExp(`^#${n}\\b`).test(pr.title)) update.title = `#${n} ${pr.title.replace(/^#\d+\s*/, "")}`;
+            const body = pr.body || "";
+            if (!new RegExp(`(close[sd]?|fix(e[sd])?|resolve[sd]?)\\s+#${n}\\b`, "i").test(body)) {
+              update.body = `Closes #${n}\n\n${body.replace(/^Closes #\s*$/m, "").trim()}`;
+            }
+            if (Object.keys(update).length) {
+              await github.rest.pulls.update({ ...context.repo, pull_number: pr.number, ...update });
+              core.notice(`Ajustado automaticamente: ${Object.keys(update).join(", ")}.`);
+            }
+            core.info(`OK: branch "${branch}" ligada à issue #${n} (${issue.title}).`);

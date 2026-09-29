@@ -563,7 +563,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 | #40 | Apresentação (live demo) | 23/11 |
 
 - **Estudar** a seção 12 (perguntas da arguição). Qualquer um pode ser chamado ao terminal.
-- Revisar pelo menos **um PR** de outra pessoa por semana.
+- Comentar em pelo menos **um PR** de outra pessoa por semana (a aprovação é do João Pedro ou do Hugo).
 
 ### 15.4 Cadeia de dependências (quem espera quem)
 ```mermaid
@@ -588,9 +588,14 @@ flowchart LR
 
 ## 16. Fluxo de desenvolvimento e autonomia
 
-- **Cada issue é autossuficiente:** objetivo, por que importa, o que você vai aprender, dependências (bloqueada por / bloqueia), como começar sem esperar, entregáveis, passo a passo, como testar, critério de pronto, material de apoio, dicas e revisor.
+- **Cada issue é autossuficiente:** objetivo, por que importa, o que você vai aprender, dependências (bloqueada por / bloqueia), como começar sem esperar, entregáveis, passo a passo, como testar, critério de pronto, material de apoio, dicas e quem aprova.
 - **Contratos:** [`CONTRATOS.md`](CONTRATOS.md) fixa nomes, portas, variáveis, rotas, formato de CSV e arquivos do relatório. Com isso cada um trabalha em paralelo usando mocks e stubs, sem esperar ninguém.
-- **Fluxo:** [`FLUXO.md`](FLUXO.md) descreve o ciclo branch → PR → revisão → merge, quem revisa quem, o ritmo semanal e o que fazer quando travar.
+- **Fluxo:** [`FLUXO.md`](FLUXO.md) descreve o ciclo branch → PR → aprovação → merge, o ritmo semanal e o que fazer quando travar.
+- **Regras obrigatórias no GitHub** (issue #42):
+  - a `main` é protegida por ruleset, sem push direto;
+  - toda branch nasce de uma issue aberta (`N-descricao`), o que é checado pela Action `regras-do-pr`;
+  - o merge só acontece com aprovação do **João Pedro ou do Hugo** (`CODEOWNERS`);
+  - o merge é sempre squash.
 - **Dependências nativas do GitHub:** cada issue mostra "Blocked by" na lateral. Todas as tarefas bloqueadas têm uma alternativa para começar antes.
 - **Instalação condensada:** as antigas #3–#9 foram fechadas como duplicadas da **#2**, que agora é uma issue só para os 8, com checklist por pessoa.
 - **Ajustes de calendário feitos na análise:**
