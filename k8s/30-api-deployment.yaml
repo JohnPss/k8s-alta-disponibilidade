@@ -1,0 +1,25 @@
+# Deployment base da API (CONTRATOS §1). initContainer, envFrom, probes,
+# resources e strategy entram na #21.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: ha-demo
+  labels: { app: api }
+spec:
+  replicas: 3                         # [OBRIGATÓRIO]
+  selector:
+    matchLabels: { app: api }         # == template.metadata.labels == selector do Service
+  template:
+    metadata:
+      labels: { app: api }
+    spec:
+      containers:
+        - name: api
+          image: api:1.0
+          imagePullPolicy: IfNotPresent # imagem local do Minikube, não baixa do Docker Hub
+          ports: [{ containerPort: 8080 }]
+          env:                        # Downward API: o pod descobre quem ele é
+            - { name: POD_NAME, valueFrom: { fieldRef: { fieldPath: metadata.name } } }
+            - { name: POD_IP,   valueFrom: { fieldRef: { fieldPath: status.podIP } } }
+            - { name: NODE_NAME, valueFrom: { fieldRef: { fieldPath: spec.nodeName } } }
