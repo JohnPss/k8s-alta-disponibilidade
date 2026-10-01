@@ -1,0 +1,46 @@
+# Registro de Versões e Ambiente do Cluster - Issue #10
+# Data: 2026-10-01
+# Responsável: João Vitor (@joaovitor3105)
+# Disciplina: Sistemas Operacionais Modernos (CEFET-MG / DECOM)
+# Grupo: G3 - Tema 5 (Kubernetes Alta Disponibilidade)
+
+---
+1. Sistema Operacional (Host)
+SO: Ubuntu 24.04.4 LTS (Noble Numbat)
+Kernel: Linux 6.14.0-33-generic
+Arquitetura: x86_64
+
+---
+2. Docker (Host)
+Docker Version: 29.1.3
+API Version: 1.52
+Go Version: go1.24.4
+Git Commit: 29.1.3-0ubuntu3~24.04.2
+
+---
+3. Minikube
+Minikube Version: v1.39.0
+Commit: 7a9f6a841470a207de8cf4bafcccee0969d8ba10
+Driver: docker
+Recursos configurados: 4 CPUs, 6144 MB RAM
+CNI: Calico
+
+---
+4. Kubernetes
+Kubectl Client Version: v1.37.1
+Kubernetes Server Version: v1.37.0
+Kustomize Version: v5.8.1
+
+---
+5. Nó do Cluster (Minikube)
+Nome: minikube
+Status: Ready (control-plane)
+OS Imagem do Nó: Debian GNU/Linux 12 (bookworm)
+Container Runtime: containerd://2.3.4
+Internal IP: 192.168.49.2
+
+---
+6. Addons Habilitados
+- storage-provisioner
+- default-storageclass
+- metrics-server (registry.k8s.io/metrics-server/metrics-server:v0.9.0)
