@@ -2,13 +2,313 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>API · alta disponibilidade</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Avenir Next", Avenir, "Trebuchet MS", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --ink: #102629;
+      --muted: #617477;
+      --line: rgba(16, 38, 41, .14);
+      --paper: rgba(255, 255, 255, .94);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 28px clamp(18px, 5vw, 72px) 36px;
+      color: var(--ink);
+      background-color: #2e86de;
+      background-image: radial-gradient(rgba(255, 255, 255, .13) 1px, transparent 1px);
+      background-size: 18px 18px;
+      transition: background-color 350ms ease;
+    }
+
+    .page { width: min(1180px, 100%); margin: 0 auto; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      color: #fff;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .wordmark { display: flex; align-items: center; gap: 11px; }
+    .wordmark::before { width: 10px; height: 10px; border: 2px solid currentColor; border-radius: 50%; content: ""; }
+
+    .connection {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 12px;
+      border: 1px solid rgba(255, 255, 255, .5);
+      border-radius: 3px;
+      background: rgba(255, 255, 255, .13);
+      letter-spacing: .06em;
+    }
+
+    .connection::before { width: 8px; height: 8px; border-radius: 50%; background: #a7f3c4; content: ""; }
+    .connection.is-error { border-color: #f5b2ad; background: #9d2824; color: #fff; }
+    .connection.is-error::before { background: #fff; }
+
+    .hero {
+      display: flex;
+      min-height: 390px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 62px 0 54px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .eyebrow {
+      margin: 0 0 20px;
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .17em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 100%;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 5rem;
+      font-weight: 500;
+      line-height: 1.03;
+      overflow-wrap: anywhere;
+    }
+
+    .message {
+      max-width: 720px;
+      margin: 22px auto 0;
+      font-size: 1.35rem;
+      line-height: 1.45;
+    }
+
+    .notice {
+      width: fit-content;
+      margin: -18px auto 24px;
+      padding: 11px 16px;
+      border: 1px solid #f2aaa4;
+      border-radius: 3px;
+      background: #9d2824;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    [hidden] { display: none !important; }
+
+    .details {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      overflow: hidden;
+      border-radius: 4px;
+      background: var(--paper);
+      box-shadow: 0 18px 55px rgba(10, 31, 35, .14);
+    }
+
+    .detail { min-width: 0; padding: 22px 24px 24px; }
+    .detail + .detail { border-left: 1px solid var(--line); }
+    .detail dt, .section-label { color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .detail dd { margin: 9px 0 0; font-size: 1.18rem; font-weight: 700; overflow-wrap: anywhere; }
+
+    .activity {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 42px;
+      margin-top: 42px;
+      color: #fff;
+    }
+
+    .activity h2 { margin: 0 0 17px; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .activity ol, .distribution { margin: 0; padding: 0; list-style: none; }
+
+    .history-row, .distribution-row {
+      display: grid;
+      min-height: 38px;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid rgba(255, 255, 255, .32);
+      font-size: .92rem;
+    }
+
+    .history-row:last-child, .distribution-row:last-child { border-bottom: 1px solid rgba(255, 255, 255, .32); }
+    .row-index, .row-time { color: rgba(255, 255, 255, .76); font-variant-numeric: tabular-nums; }
+    .row-pod { min-width: 0; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .row-count { min-width: 34px; padding: 4px 8px; border-radius: 2px; background: rgba(255, 255, 255, .9); color: var(--ink); font-size: .78rem; font-weight: 800; text-align: center; }
+    .distribution-row { grid-template-columns: minmax(0, 1fr) auto; }
+    .empty-state { margin: 0; padding: 12px 0; color: rgba(255, 255, 255, .8); font-size: .92rem; }
+
+    @media (max-width: 760px) {
+      body { padding: 18px 18px 28px; }
+      .hero { min-height: 310px; padding: 52px 0 42px; }
+      h1 { font-size: 3.2rem; }
+      .message { font-size: 1.12rem; }
+      .details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail { padding: 18px; }
+      .detail:nth-child(3) { border-left: 0; }
+      .detail:nth-child(n+3) { border-top: 1px solid var(--line); }
+      .activity { grid-template-columns: 1fr; gap: 30px; margin-top: 32px; }
+    }
+
+    @media (max-width: 420px) {
+      .topbar { align-items: flex-start; font-size: .65rem; }
+      .connection { padding: 8px; }
+      h1 { font-size: 2.45rem; }
+      .detail { padding: 15px 12px; }
+      .detail dd { font-size: 1rem; }
+    }
+  </style>
 </head>
-<body style="font-family: sans-serif; background: {{ color }}; color: #fff;">
-  <h1>{{ message }}</h1>
-  <p>Pod: {{ pod }}</p>
-  <p>IP: {{ pod_ip }}</p>
-  <p>Nó: {{ node }}</p>
-  <p>Versão: {{ version }}</p>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="wordmark">Alta disponibilidade</div>
+      <div id="connection" class="connection" role="status" aria-live="polite">Conectando</div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="pod-name">
+        <p class="eyebrow">Pod respondendo agora</p>
+        <h1 id="pod-name">{{ pod }}</h1>
+        <p id="message" class="message">{{ message }}</p>
+      </section>
+
+      <p id="error-notice" class="notice" role="alert" hidden>Sem resposta</p>
+
+      <dl class="details" aria-label="Detalhes da resposta">
+        <div class="detail"><dt>Endereço IP</dt><dd id="pod-ip">{{ pod_ip }}</dd></div>
+        <div class="detail"><dt>Nó</dt><dd id="node">{{ node }}</dd></div>
+        <div class="detail"><dt>Versão</dt><dd id="version">{{ version }}</dd></div>
+        <div class="detail"><dt>Total de visitas</dt><dd id="visits">Aguardando</dd></div>
+      </dl>
+
+      <div class="activity">
+        <section aria-labelledby="history-title">
+          <h2 id="history-title">Últimas respostas</h2>
+          <ol id="history" aria-live="polite"><li class="empty-state">Aguardando respostas</li></ol>
+        </section>
+        <section aria-labelledby="distribution-title">
+          <h2 id="distribution-title">Distribuição · últimas 10 respostas</h2>
+          <ul id="distribution" class="distribution"><li class="empty-state">Aguardando respostas</li></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const recentPods = [];
+    const fields = {
+      pod: document.querySelector("#pod-name"),
+      podIp: document.querySelector("#pod-ip"),
+      node: document.querySelector("#node"),
+      version: document.querySelector("#version"),
+      message: document.querySelector("#message"),
+      visits: document.querySelector("#visits"),
+      history: document.querySelector("#history"),
+      distribution: document.querySelector("#distribution"),
+      connection: document.querySelector("#connection"),
+      error: document.querySelector("#error-notice")
+    };
+
+    function displayValue(value) {
+      return value === null || value === undefined || value === "" ? "Indisponível" : String(value);
+    }
+
+    function renderHistory() {
+      const counts = new Map();
+      for (const response of recentPods) {
+        counts.set(response.pod, (counts.get(response.pod) || 0) + 1);
+      }
+
+      fields.history.replaceChildren();
+      recentPods.forEach((response, index) => {
+        const row = document.createElement("li");
+        row.className = "history-row";
+
+        const number = document.createElement("span");
+        number.className = "row-index";
+        number.textContent = String(index + 1).padStart(2, "0");
+
+        const pod = document.createElement("span");
+        pod.className = "row-pod";
+        pod.textContent = response.pod;
+
+        const time = document.createElement("time");
+        time.className = "row-time";
+        time.textContent = response.time;
+
+        row.append(number, pod, time);
+        fields.history.append(row);
+      });
+
+      fields.distribution.replaceChildren();
+      for (const [podName, count] of counts) {
+        const row = document.createElement("li");
+        row.className = "distribution-row";
+
+        const pod = document.createElement("span");
+        pod.className = "row-pod";
+        pod.textContent = podName;
+
+        const total = document.createElement("span");
+        total.className = "row-count";
+        total.textContent = `${count}×`;
+        total.setAttribute("aria-label", `${count} respostas`);
+
+        row.append(pod, total);
+        fields.distribution.append(row);
+      }
+    }
+
+    async function updateWhoami() {
+      try {
+        const response = await fetch("/api/whoami", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        if (!data || typeof data.pod !== "string" || !data.pod) throw new Error("Resposta inválida");
+
+        fields.pod.textContent = data.pod;
+        fields.podIp.textContent = displayValue(data.pod_ip);
+        fields.node.textContent = displayValue(data.node);
+        fields.version.textContent = displayValue(data.version);
+        fields.message.textContent = displayValue(data.message);
+        fields.visits.textContent = data.visits === null ? "Indisponível" : displayValue(data.visits);
+
+        if (typeof data.color === "string" && CSS.supports("color", data.color)) {
+          document.body.style.backgroundColor = data.color;
+        }
+
+        recentPods.unshift({ pod: data.pod, time: new Date().toLocaleTimeString("pt-BR") });
+        recentPods.length = Math.min(recentPods.length, 10);
+        renderHistory();
+        fields.connection.classList.remove("is-error");
+        fields.connection.textContent = "Ao vivo";
+        fields.error.hidden = true;
+      } catch (error) {
+        fields.connection.classList.add("is-error");
+        fields.connection.textContent = "Sem resposta";
+        fields.error.hidden = false;
+      }
+    }
+
+    updateWhoami();
+    setInterval(updateWhoami, 1000);
+  </script>
 </body>
 </html>
