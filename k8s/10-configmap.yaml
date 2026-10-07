@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: ha-demo
+data:
+  APP_VERSION: "1.0"
+  APP_MESSAGE: "Olá, turma de SO!"
+  APP_COLOR: "#2e86de"
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "appdb"
