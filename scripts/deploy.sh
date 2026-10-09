@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Aplica os manifestos Kubernetes, aguarda os rollouts e mostra a URL da API.
+# Uso: ./scripts/deploy.sh (opcional: NS=ha-demo ./scripts/deploy.sh)
+
+set -euo pipefail
+
+NS="${NS:-ha-demo}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+printf '\033[34m==> Aplicando manifestos Kubernetes...\033[0m\n'
+kubectl apply -f k8s/
+
+printf '\033[34m==> Aguardando rollout do PostgreSQL (quando configurado)...\033[0m\n'
+kubectl rollout status statefulset/postgres -n "$NS" --timeout=180s || true
+
+printf '\033[34m==> Aguardando rollout da API...\033[0m\n'
+kubectl rollout status deployment/api -n "$NS" --timeout=180s
+
+printf '\033[34m==> Pods no namespace %s:\033[0m\n' "$NS"
+kubectl get pods -n "$NS" -o wide
+
+URL="$(minikube service api -n "$NS" --url)"
+printf '\033[32mURL: %s\033[0m\n' "$URL"
