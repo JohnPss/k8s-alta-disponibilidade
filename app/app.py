@@ -3,20 +3,26 @@
 Issue #12: rotas do contrato, ainda sem banco.
 /api/whoami responde com visits=null e db="indisponível".
 A integração com o Postgres fica para a #20.
+
+Issue #24: POST /api/crash marca o pod como doente e GET /api/cpu gasta CPU.
 """
 
+import hashlib
 import os
 import socket
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 app.json.sort_keys = False
 app.json.ensure_ascii = False
 
 UNHEALTHY_FILE = Path("/tmp/unhealthy")
+CPU_DEFAULT_MS = 200
+CPU_MAX_MS = 2000
 
 
 def settings():
@@ -86,3 +92,33 @@ def healthz():
 @app.get("/readyz")
 def readyz():
     return jsonify({"status": "ready"})
+
+
+@app.post("/api/crash")
+def crash():
+    """Cria /tmp/unhealthy. O /healthz passa a 500 e a liveness reinicia o container."""
+    UNHEALTHY_FILE.touch()
+    return jsonify({"status": "crashing", "pod": settings()["pod"]}), 202
+
+
+def cpu_milliseconds():
+    raw = request.args.get("ms", str(CPU_DEFAULT_MS))
+    try:
+        ms = int(raw)
+    except (TypeError, ValueError):
+        ms = CPU_DEFAULT_MS
+    return max(0, min(ms, CPU_MAX_MS))
+
+
+def burn_cpu(ms):
+    deadline = time.perf_counter() + ms / 1000
+    payload = b"ha-demo"
+    while time.perf_counter() < deadline:
+        payload = hashlib.sha256(payload).digest()
+
+
+@app.get("/api/cpu")
+def cpu():
+    ms = cpu_milliseconds()
+    burn_cpu(ms)
+    return jsonify({"pod": settings()["pod"], "ms": ms})
