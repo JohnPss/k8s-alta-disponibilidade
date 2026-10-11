@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>API · alta disponibilidade</title>
+  <link rel="icon" href="data:,">
   <style>
     :root {
       color-scheme: light;
@@ -64,11 +65,11 @@
 
     .hero {
       display: flex;
-      min-height: 390px;
+      min-height: 245px;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 62px 0 54px;
+      padding: 34px 0;
       text-align: center;
       color: #fff;
     }
@@ -85,7 +86,7 @@
       max-width: 100%;
       margin: 0;
       font-family: Georgia, "Times New Roman", serif;
-      font-size: 5rem;
+      font-size: clamp(2.4rem, 6vw, 4rem);
       font-weight: 500;
       line-height: 1.03;
       overflow-wrap: anywhere;
@@ -93,8 +94,8 @@
 
     .message {
       max-width: 720px;
-      margin: 22px auto 0;
-      font-size: 1.35rem;
+      margin: 14px auto 0;
+      font-size: 1.12rem;
       line-height: 1.45;
     }
 
@@ -125,50 +126,74 @@
     .detail dt, .section-label { color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
     .detail dd { margin: 9px 0 0; font-size: 1.18rem; font-weight: 700; overflow-wrap: anywhere; }
 
-    .activity {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 42px;
-      margin-top: 42px;
+    .dashboard { margin-top: 36px; color: #fff; }
+    .dashboard h2 { margin: 0 0 15px; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .metric {
+      min-width: 0;
+      padding: 15px 18px;
+      border: 1px solid rgba(255, 255, 255, .38);
+      border-radius: 4px;
+      background: rgba(9, 35, 51, .22);
+    }
+    .metric-label { display: block; color: rgba(255, 255, 255, .78); font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .metric-value { display: block; margin-top: 5px; font-size: clamp(1.45rem, 3vw, 2rem); font-variant-numeric: tabular-nums; font-weight: 800; }
+    .pods-section { margin-top: 30px; }
+    .pod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+    .pod-card {
+      position: relative;
+      min-height: 122px;
+      overflow: hidden;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, .58);
+      border-top: 5px solid var(--pod-color);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .96);
+      color: var(--ink);
+      box-shadow: 0 8px 22px rgba(10, 31, 35, .13);
+      transition: background-color 350ms ease, filter 350ms ease, opacity 350ms ease;
+    }
+    .pod-card.is-stale { filter: grayscale(1); opacity: .68; }
+    .pod-card.is-new { animation: appear 400ms ease both; }
+    .pod-prefix { display: block; overflow: hidden; color: var(--muted); font-size: .72rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .pod-suffix { display: block; margin-top: 9px; overflow: hidden; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; letter-spacing: -.04em; text-overflow: ellipsis; white-space: nowrap; }
+    .pod-badge {
+      position: absolute;
+      top: 11px;
+      right: 11px;
+      padding: 4px 6px;
+      border-radius: 2px;
+      background: #0e8b61;
       color: #fff;
+      font-size: .58rem;
+      font-weight: 900;
+      letter-spacing: .08em;
     }
-
-    .activity h2 { margin: 0 0 17px; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-    .activity ol, .distribution { margin: 0; padding: 0; list-style: none; }
-
-    .history-row, .distribution-row {
-      display: grid;
-      min-height: 38px;
-      grid-template-columns: 34px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 12px;
-      border-top: 1px solid rgba(255, 255, 255, .32);
-      font-size: .92rem;
-    }
-
-    .history-row:last-child, .distribution-row:last-child { border-bottom: 1px solid rgba(255, 255, 255, .32); }
-    .row-index, .row-time { color: rgba(255, 255, 255, .76); font-variant-numeric: tabular-nums; }
-    .row-pod { min-width: 0; overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-    .row-count { min-width: 34px; padding: 4px 8px; border-radius: 2px; background: rgba(255, 255, 255, .9); color: var(--ink); font-size: .78rem; font-weight: 800; text-align: center; }
-    .distribution-row { grid-template-columns: minmax(0, 1fr) auto; }
-    .empty-state { margin: 0; padding: 12px 0; color: rgba(255, 255, 255, .8); font-size: .92rem; }
+    .pod-badge[hidden] { display: none; }
+    .empty-state { margin: 0; padding: 16px 0; color: rgba(255, 255, 255, .82); font-size: .92rem; }
+    .responses-section { margin-top: 30px; padding-bottom: 28px; }
+    .response-track { display: flex; min-height: 24px; flex-wrap: wrap; gap: 6px; }
+    .response-tile { width: 17px; height: 17px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 2px; }
+    .response-tile.is-failure { background: repeating-linear-gradient(135deg, #fff 0 3px, #d7263d 3px 6px); }
+    @keyframes appear { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     @media (max-width: 760px) {
       body { padding: 18px 18px 28px; }
-      .hero { min-height: 310px; padding: 52px 0 42px; }
-      h1 { font-size: 3.2rem; }
-      .message { font-size: 1.12rem; }
+      .hero { min-height: 220px; padding: 38px 0 30px; }
+      h1 { font-size: clamp(2rem, 9vw, 3.2rem); }
+      .message { font-size: 1rem; }
       .details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .detail { padding: 18px; }
       .detail:nth-child(3) { border-left: 0; }
       .detail:nth-child(n+3) { border-top: 1px solid var(--line); }
-      .activity { grid-template-columns: 1fr; gap: 30px; margin-top: 32px; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .dashboard, .pods-section, .responses-section { margin-top: 26px; }
     }
 
     @media (max-width: 420px) {
       .topbar { align-items: flex-start; font-size: .65rem; }
       .connection { padding: 8px; }
-      h1 { font-size: 2.45rem; }
+      h1 { font-size: 2rem; }
       .detail { padding: 15px 12px; }
       .detail dd { font-size: 1rem; }
     }
@@ -197,21 +222,31 @@
         <div class="detail"><dt>Total de visitas</dt><dd id="visits">Aguardando</dd></div>
       </dl>
 
-      <div class="activity">
-        <section aria-labelledby="history-title">
-          <h2 id="history-title">Últimas respostas</h2>
-          <ol id="history" aria-live="polite"><li class="empty-state">Aguardando respostas</li></ol>
-        </section>
-        <section aria-labelledby="distribution-title">
-          <h2 id="distribution-title">Distribuição · últimas 10 respostas</h2>
-          <ul id="distribution" class="distribution"><li class="empty-state">Aguardando respostas</li></ul>
-        </section>
-      </div>
+      <section class="dashboard" aria-labelledby="metrics-title">
+        <h2 id="metrics-title">Monitorização em tempo real</h2>
+        <div class="metrics">
+          <div class="metric"><span class="metric-label">Requisições</span><strong id="request-count" class="metric-value">0</strong></div>
+          <div class="metric"><span class="metric-label">Falhas</span><strong id="failure-count" class="metric-value">0</strong></div>
+          <div class="metric"><span class="metric-label">Média · últimas 50</span><strong id="average-time" class="metric-value">— ms</strong></div>
+          <div class="metric"><span class="metric-label">Pods respondendo</span><strong id="active-count" class="metric-value">0</strong></div>
+        </div>
+      </section>
+
+      <section class="pods-section" aria-labelledby="pods-title">
+        <h2 id="pods-title">Pods detetados</h2>
+        <div id="pod-grid" class="pod-grid" aria-live="polite">
+          <p class="empty-state">Aguardando respostas</p>
+        </div>
+      </section>
+
+      <section class="responses-section" aria-labelledby="responses-title">
+        <h2 id="responses-title">Últimas 40 respostas</h2>
+        <div id="response-track" class="response-track" role="list" aria-label="Histórico de respostas"></div>
+      </section>
     </main>
   </div>
 
   <script>
-    const recentPods = [];
     const fields = {
       pod: document.querySelector("#pod-name"),
       podIp: document.querySelector("#pod-ip"),
@@ -219,96 +254,156 @@
       version: document.querySelector("#version"),
       message: document.querySelector("#message"),
       visits: document.querySelector("#visits"),
-      history: document.querySelector("#history"),
-      distribution: document.querySelector("#distribution"),
       connection: document.querySelector("#connection"),
-      error: document.querySelector("#error-notice")
+      error: document.querySelector("#error-notice"),
+      requestCount: document.querySelector("#request-count"),
+      failureCount: document.querySelector("#failure-count"),
+      averageTime: document.querySelector("#average-time"),
+      activeCount: document.querySelector("#active-count"),
+      podGrid: document.querySelector("#pod-grid"),
+      responseTrack: document.querySelector("#response-track")
     };
+
+    const pods = new Map();
+    const responseHistory = [];
+    const responseTimes = [];
+    let requestCount = 0;
+    let failureCount = 0;
+    let podOrder = 0;
 
     function displayValue(value) {
       return value === null || value === undefined || value === "" ? "Indisponível" : String(value);
     }
 
-    function renderHistory() {
-      const counts = new Map();
-      for (const response of recentPods) {
-        counts.set(response.pod, (counts.get(response.pod) || 0) + 1);
-      }
+    function createPodCard(podName, now) {
+      const card = document.createElement("article");
+      const badge = document.createElement("span");
+      const prefix = document.createElement("span");
+      const suffix = document.createElement("strong");
+      const separator = podName.lastIndexOf("-");
 
-      fields.history.replaceChildren();
-      recentPods.forEach((response, index) => {
-        const row = document.createElement("li");
-        row.className = "history-row";
+      card.className = "pod-card is-new";
+      card.style.setProperty("--pod-color", `hsl(${(podOrder * 137.5) % 360} 68% 48%)`);
+      podOrder += 1;
+      card.title = podName;
+      badge.className = "pod-badge";
+      badge.textContent = "NOVO";
+      prefix.className = "pod-prefix";
+      prefix.textContent = separator >= 0 ? podName.slice(0, separator + 1) : "POD";
+      suffix.className = "pod-suffix";
+      suffix.textContent = separator >= 0 ? podName.slice(separator + 1) : podName;
+      card.append(badge, prefix, suffix);
+      fields.podGrid.querySelector(".empty-state")?.remove();
+      fields.podGrid.append(card);
+      return { card, badge, firstSeen: now, lastSeen: now, color: card.style.getPropertyValue("--pod-color") };
+    }
 
-        const number = document.createElement("span");
-        number.className = "row-index";
-        number.textContent = String(index + 1).padStart(2, "0");
-
-        const pod = document.createElement("span");
-        pod.className = "row-pod";
-        pod.textContent = response.pod;
-
-        const time = document.createElement("time");
-        time.className = "row-time";
-        time.textContent = response.time;
-
-        row.append(number, pod, time);
-        fields.history.append(row);
+    async function fetchWhoami() {
+      const response = await fetch("/api/whoami", {
+        cache: "no-store",
+        signal: AbortSignal.timeout(1000)
       });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (!data || typeof data.pod !== "string" || !data.pod) throw new Error("Resposta inválida");
+      return data;
+    }
 
-      fields.distribution.replaceChildren();
-      for (const [podName, count] of counts) {
-        const row = document.createElement("li");
-        row.className = "distribution-row";
+    function updateMetrics() {
+      const samples = responseTimes.slice(-50);
+      const average = samples.length ? samples.reduce((sum, value) => sum + value, 0) / samples.length : null;
+      fields.requestCount.textContent = String(requestCount);
+      fields.failureCount.textContent = String(failureCount);
+      fields.averageTime.textContent = average === null ? "— ms" : `${Math.round(average)} ms`;
+      fields.activeCount.textContent = String([...pods.values()].filter(pod => Date.now() - pod.lastSeen <= 8000).length);
+    }
 
-        const pod = document.createElement("span");
-        pod.className = "row-pod";
-        pod.textContent = podName;
-
-        const total = document.createElement("span");
-        total.className = "row-count";
-        total.textContent = `${count}×`;
-        total.setAttribute("aria-label", `${count} respostas`);
-
-        row.append(pod, total);
-        fields.distribution.append(row);
+    function renderResponseHistory() {
+      fields.responseTrack.replaceChildren();
+      for (const response of responseHistory) {
+        const tile = document.createElement("span");
+        tile.className = response.ok ? "response-tile" : "response-tile is-failure";
+        tile.setAttribute("role", "listitem");
+        tile.setAttribute("aria-label", response.ok ? `Sucesso: ${response.pod}` : "Falha");
+        tile.title = response.ok ? `Sucesso · ${response.pod}` : "Falha na requisição";
+        if (response.ok) tile.style.backgroundColor = response.color;
+        fields.responseTrack.append(tile);
       }
     }
 
-    async function updateWhoami() {
-      try {
-        const response = await fetch("/api/whoami", { cache: "no-store" });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-        if (!data || typeof data.pod !== "string" || !data.pod) throw new Error("Resposta inválida");
-
-        fields.pod.textContent = data.pod;
-        fields.podIp.textContent = displayValue(data.pod_ip);
-        fields.node.textContent = displayValue(data.node);
-        fields.version.textContent = displayValue(data.version);
-        fields.message.textContent = displayValue(data.message);
-        fields.visits.textContent = data.visits === null ? "Indisponível" : displayValue(data.visits);
-
-        if (typeof data.color === "string" && CSS.supports("color", data.color)) {
-          document.body.style.backgroundColor = data.color;
+    function updatePodLifecycle() {
+      const now = Date.now();
+      for (const [podName, pod] of pods) {
+        const silence = now - pod.lastSeen;
+        if (silence > 15000) {
+          pod.card.remove();
+          pods.delete(podName);
+          continue;
         }
+        pod.card.classList.toggle("is-stale", silence > 8000);
+        pod.badge.hidden = now - pod.firstSeen >= 6000;
+      }
+      updateMetrics();
+      setTimeout(updatePodLifecycle, 250);
+    }
 
-        recentPods.unshift({ pod: data.pod, time: new Date().toLocaleTimeString("pt-BR") });
-        recentPods.length = Math.min(recentPods.length, 10);
-        renderHistory();
-        fields.connection.classList.remove("is-error");
-        fields.connection.textContent = "Ao vivo";
-        fields.error.hidden = true;
-      } catch (error) {
-        fields.connection.classList.add("is-error");
-        fields.connection.textContent = "Sem resposta";
-        fields.error.hidden = false;
+    function recordSuccess(data) {
+      const now = Date.now();
+      let pod = pods.get(data.pod);
+      if (!pod) pod = createPodCard(data.pod, now);
+      pod.lastSeen = now;
+
+      fields.pod.textContent = data.pod;
+      fields.podIp.textContent = displayValue(data.pod_ip);
+      fields.node.textContent = displayValue(data.node);
+      fields.version.textContent = displayValue(data.version);
+      fields.message.textContent = displayValue(data.message);
+      fields.visits.textContent = data.visits === null ? "Indisponível" : displayValue(data.visits);
+      responseHistory.push({ ok: true, pod: data.pod, color: pod.color });
+    }
+
+    async function runMonitor() {
+      while (true) {
+        const roundStartedAt = Date.now();
+        const requests = Array.from({ length: 5 }, () => {
+          const requestStartedAt = performance.now();
+          requestCount += 1;
+          return fetchWhoami().finally(() => {
+            responseTimes.push(performance.now() - requestStartedAt);
+            if (responseTimes.length > 50) responseTimes.shift();
+          });
+        });
+        updateMetrics();
+
+        const results = await Promise.allSettled(requests);
+        let successes = 0;
+        let roundFailures = 0;
+        results.forEach(result => {
+          if (result.status === "fulfilled") {
+            successes += 1;
+            recordSuccess(result.value);
+          } else {
+            roundFailures += 1;
+            failureCount += 1;
+            responseHistory.push({ ok: false });
+            console.error("Falha ao consultar /api/whoami:", result.reason);
+          }
+        });
+        responseHistory.splice(0, Math.max(0, responseHistory.length - 40));
+        renderResponseHistory();
+
+        fields.connection.classList.toggle("is-error", successes === 0);
+        fields.connection.textContent = successes ? "Ao vivo" : "Sem resposta";
+        fields.error.hidden = roundFailures === 0;
+        if (roundFailures) fields.error.textContent = `${roundFailures} ${roundFailures === 1 ? "falha" : "falhas"} nesta rodada`;
+        updateMetrics();
+
+        await new Promise(resolve => setTimeout(resolve, Math.max(0, 1000 - (Date.now() - roundStartedAt))));
       }
     }
 
-    updateWhoami();
-    setInterval(updateWhoami, 1000);
+    updatePodLifecycle();
+    runMonitor();
   </script>
 </body>
 </html>
