@@ -169,7 +169,6 @@
       font-weight: 900;
       letter-spacing: .08em;
     }
-    .pod-badge[hidden] { display: none; }
     .empty-state { margin: 0; padding: 16px 0; color: rgba(255, 255, 255, .82); font-size: .92rem; }
     .responses-section { margin-top: 30px; padding-bottom: 28px; }
     .response-track { display: flex; min-height: 24px; flex-wrap: wrap; gap: 6px; }
@@ -350,7 +349,10 @@
     function recordSuccess(data) {
       const now = Date.now();
       let pod = pods.get(data.pod);
-      if (!pod) pod = createPodCard(data.pod, now);
+      if (!pod) {
+        pod = createPodCard(data.pod, now);
+        pods.set(data.pod, pod);
+      }
       pod.lastSeen = now;
 
       fields.pod.textContent = data.pod;
@@ -359,6 +361,11 @@
       fields.version.textContent = displayValue(data.version);
       fields.message.textContent = displayValue(data.message);
       fields.visits.textContent = data.visits === null ? "Indisponível" : displayValue(data.visits);
+
+      if (typeof data.color === "string" && CSS.supports("color", data.color)) {
+        document.body.style.backgroundColor = data.color;
+      }
+
       responseHistory.push({ ok: true, pod: data.pod, color: pod.color });
     }
 
