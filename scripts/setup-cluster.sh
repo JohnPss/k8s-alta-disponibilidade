@@ -7,6 +7,8 @@
 
 set -euo pipefail
 
+cd "$(dirname "$0")/.."
+
 CPUS="${CPUS:-4}"
 MEMORY="${MEMORY:-6144}"
 DRIVER="${DRIVER:-docker}"

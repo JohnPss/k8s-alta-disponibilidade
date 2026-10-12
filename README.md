@@ -25,6 +25,14 @@ docs/       plano, cronograma, roteiro da demo, diagramas
 relatorio/  relatório LaTeX
 ```
 
+## Versões
+| Ferramenta | Versão |
+|---|---|
+| Minikube | v1.39.0 |
+| Kubernetes (servidor) | v1.37.0 |
+| kubectl | v1.37.1 |
+| Docker | 29.1.3 |
+
 ## Como rodar
 > Em construção. Ver issues da milestone *S1 · Setup*.
 
