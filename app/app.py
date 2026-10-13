@@ -1,8 +1,8 @@
 """API Flask da demo de alta disponibilidade.
 
-Issue #12: rotas do contrato, ainda sem banco.
-/api/whoami responde com visits=null e db="indisponível".
-A integração com o Postgres fica para a #20.
+Issue #20: /api/whoami grava uma visita no Postgres e devolve o total.
+Se o banco cair, a resposta continua 200 com db="indisponível".
+O /readyz não consulta o banco.
 
 Issue #24: POST /api/crash marca o pod como doente e GET /api/cpu gasta CPU.
 """
@@ -14,6 +14,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+import psycopg
 from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
@@ -23,10 +24,18 @@ app.json.ensure_ascii = False
 UNHEALTHY_FILE = Path("/tmp/unhealthy")
 CPU_DEFAULT_MS = 200
 CPU_MAX_MS = 2000
+DB_CONNECT_TIMEOUT = 2
+
+CREATE_VISITS = """
+CREATE TABLE IF NOT EXISTS visits (
+  id  SERIAL PRIMARY KEY,
+  pod TEXT NOT NULL,
+  ts  TIMESTAMPTZ NOT NULL DEFAULT now()
+)
+"""
 
 
 def settings():
-    """Variáveis de CONTRATOS §2, com o padrão de quando a API roda local."""
     return {
         "pod": os.getenv("POD_NAME", socket.gethostname()),
         "pod_ip": os.getenv("POD_IP", "127.0.0.1"),
@@ -43,6 +52,47 @@ def settings():
 
 
 app.config.update(settings())
+
+
+def connect_db():
+    cfg = settings()
+    return psycopg.connect(
+        host=cfg["db_host"],
+        port=cfg["db_port"],
+        dbname=cfg["db_name"],
+        user=cfg["db_user"],
+        password=cfg["db_password"],
+        connect_timeout=DB_CONNECT_TIMEOUT,
+    )
+
+
+def ensure_visits_table(conn):
+    with conn.cursor() as cur:
+        cur.execute(CREATE_VISITS)
+
+
+def init_db():
+    try:
+        with connect_db() as conn:
+            ensure_visits_table(conn)
+    except Exception:
+        return
+
+
+def record_visit(pod):
+    try:
+        with connect_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(CREATE_VISITS)
+                cur.execute("INSERT INTO visits (pod) VALUES (%s)", (pod,))
+                cur.execute("SELECT count(*) FROM visits")
+                (count,) = cur.fetchone()
+            return int(count)
+    except Exception:
+        return None
+
+
+init_db()
 
 
 @app.after_request
@@ -68,6 +118,7 @@ def index():
 @app.get("/api/whoami")
 def whoami():
     cfg = settings()
+    visits = record_visit(cfg["pod"])
     payload = {
         "pod": cfg["pod"],
         "pod_ip": cfg["pod_ip"],
@@ -75,8 +126,8 @@ def whoami():
         "version": cfg["version"],
         "message": cfg["message"],
         "color": cfg["color"],
-        "visits": None,
-        "db": "indisponível",
+        "visits": visits,
+        "db": "ok" if visits is not None else "indisponível",
         "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     return jsonify(payload)
@@ -96,7 +147,6 @@ def readyz():
 
 @app.post("/api/crash")
 def crash():
-    """Cria /tmp/unhealthy. O /healthz passa a 500 e a liveness reinicia o container."""
     UNHEALTHY_FILE.touch()
     return jsonify({"status": "crashing", "pod": settings()["pod"]}), 202
 
