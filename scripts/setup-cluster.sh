@@ -14,6 +14,7 @@ MEMORY="${MEMORY:-6144}"
 DRIVER="${DRIVER:-docker}"
 CNI="${CNI:-calico}"
 NS="${NS:-ha-demo}"
+IMAGE="${IMAGE:-api:1.3}" # mesma tag de k8s/30-api-deployment.yaml
 
 echo "==> 1. Verificando pré-requisitos locais..."
 command -v docker >/dev/null 2>&1 || { echo "ERRO: Docker não está instalado."; exit 1; }
@@ -43,9 +44,9 @@ fi
 
 echo "==> 6. Compilação da imagem da API..."
 if [[ -f "app/Dockerfile" ]]; then
-  echo "Dockerfile encontrado. Construindo imagem api:1.0 no Minikube..."
-  minikube image build -t api:1.0 ./app
-  echo "Imagem api:1.0 construída com sucesso."
+  echo "Dockerfile encontrado. Construindo imagem $IMAGE no Minikube..."
+  minikube image build -t "$IMAGE" ./app
+  echo "Imagem $IMAGE construída com sucesso."
 else
   echo "Aviso: app/Dockerfile ainda não existe (será adicionado na issue #14). Pulando build da imagem."
 fi
