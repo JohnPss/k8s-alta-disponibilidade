@@ -10,7 +10,7 @@
 | Item | Valor |
 |---|---|
 | Namespace | `ha-demo` |
-| Imagem da API | `api:1.0` (mudou o código? gere `api:1.1`, `api:1.2`…) |
+| Imagem da API | `api:1.3` (mudou o código? gere a próxima tag, `api:1.4`…, e atualize o Deployment e o `setup-cluster.sh`) |
 | Deployment da API | `api` (label `app: api`, container `api`) |
 | Service da API | `api`, tipo `NodePort`, `port: 80` → `targetPort: 8080`, `nodePort: 30080` |
 | StatefulSet do banco | `postgres` (label `app: postgres`, container `postgres`) |
