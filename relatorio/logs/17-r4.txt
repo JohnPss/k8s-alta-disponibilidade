@@ -1,0 +1,32 @@
+2026-10-27T11:15:10-03:00
+c5311ee
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+api    3/3     3            3           85s
+NAME                   READY   STATUS    RESTARTS   AGE   IP              NODE       NOMINATED NODE   READINESS GATES
+api-58cf7fff8c-8kbgh   1/1     Running   0          85s   10.244.120.70   minikube   <none>           <none>
+api-58cf7fff8c-b5mqd   1/1     Running   0          85s   10.244.120.71   minikube   <none>           <none>
+api-58cf7fff8c-qtbx5   1/1     Running   0          85s   10.244.120.72   minikube   <none>           <none>
+NAME   TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+api    NodePort   10.99.68.112   <none>        80:30080/TCP   85s
+NAME   ENDPOINTS                                                  AGE
+api    10.244.120.70:8080,10.244.120.71:8080,10.244.120.72:8080   86s
+api-58cf7fff8c-b5mqd	ok	21
+api-58cf7fff8c-b5mqd	ok	22
+api-58cf7fff8c-b5mqd	ok	23
+api-58cf7fff8c-8kbgh	ok	24
+api-58cf7fff8c-b5mqd	ok	25
+api-58cf7fff8c-b5mqd	ok	26
+api-58cf7fff8c-b5mqd	ok	27
+api-58cf7fff8c-8kbgh	ok	28
+api-58cf7fff8c-8kbgh	ok	29
+api-58cf7fff8c-b5mqd	ok	30
+api-58cf7fff8c-qtbx5	ok	31
+api-58cf7fff8c-b5mqd	ok	32
+api-58cf7fff8c-b5mqd	ok	33
+api-58cf7fff8c-b5mqd	ok	34
+api-58cf7fff8c-8kbgh	ok	35
+api-58cf7fff8c-b5mqd	ok	36
+api-58cf7fff8c-b5mqd	ok	37
+api-58cf7fff8c-b5mqd	ok	38
+api-58cf7fff8c-qtbx5	ok	39
+api-58cf7fff8c-b5mqd	ok	40

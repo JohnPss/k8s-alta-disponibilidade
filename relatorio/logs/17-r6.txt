@@ -1,0 +1,32 @@
+2026-10-27T11:16:29-03:00
+c5311ee
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+api    3/3     3            3           2m44s
+NAME                   READY   STATUS    RESTARTS   AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+api-58cf7fff8c-b5mqd   1/1     Running   0          2m44s   10.244.120.71   minikube   <none>           <none>
+api-58cf7fff8c-qtbx5   1/1     Running   0          2m44s   10.244.120.72   minikube   <none>           <none>
+api-58cf7fff8c-wbgrv   1/1     Running   0          38s     10.244.120.77   minikube   <none>           <none>
+deployment.apps/api scaled
+2026-10-27T11:16:30-03:00 tentativa=1 ready=3/10
+2026-10-27T11:16:31-03:00 tentativa=2 ready=3/10
+2026-10-27T11:16:32-03:00 tentativa=3 ready=3/10
+2026-10-27T11:16:33-03:00 tentativa=4 ready=3/10
+2026-10-27T11:16:34-03:00 tentativa=5 ready=3/10
+2026-10-27T11:16:35-03:00 tentativa=6 ready=4/10
+2026-10-27T11:16:36-03:00 tentativa=7 ready=9/10
+2026-10-27T11:16:37-03:00 tentativa=8 ready=10/10
+Tempo do comando scale até 10 Ready: 7443 ms
+deployment "api" successfully rolled out
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+api    10/10   10           10          2m52s
+NAME                   READY   STATUS    RESTARTS   AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+api-58cf7fff8c-96rnn   1/1     Running   0          8s      10.244.120.83   minikube   <none>           <none>
+api-58cf7fff8c-9d74k   1/1     Running   0          8s      10.244.120.81   minikube   <none>           <none>
+api-58cf7fff8c-b5mqd   1/1     Running   0          2m52s   10.244.120.71   minikube   <none>           <none>
+api-58cf7fff8c-cggt4   1/1     Running   0          8s      10.244.120.82   minikube   <none>           <none>
+api-58cf7fff8c-j9hk2   1/1     Running   0          8s      10.244.120.80   minikube   <none>           <none>
+api-58cf7fff8c-k2fcw   1/1     Running   0          8s      10.244.120.84   minikube   <none>           <none>
+api-58cf7fff8c-kxzrl   1/1     Running   0          8s      10.244.120.78   minikube   <none>           <none>
+api-58cf7fff8c-qtbx5   1/1     Running   0          2m52s   10.244.120.72   minikube   <none>           <none>
+api-58cf7fff8c-qwrrm   1/1     Running   0          8s      10.244.120.79   minikube   <none>           <none>
+api-58cf7fff8c-wbgrv   1/1     Running   0          46s     10.244.120.77   minikube   <none>           <none>
