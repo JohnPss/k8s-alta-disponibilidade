@@ -21,22 +21,26 @@ app/        API Flask + Dockerfile
 k8s/        manifestos aplicados com kubectl apply -f k8s/
 extras/     HPA (aplicar só após a validação obrigatória)
 scripts/    setup, deploy, tráfego, medições, reset
-docs/       plano, cronograma, roteiro da demo, diagramas
+docs/       plano, cronograma, contratos, fluxo de trabalho
 relatorio/  relatório LaTeX
 ```
 
 ## Versões
-| Ferramenta | Versão |
+| Ferramenta / Imagem | Versão |
 |---|---|
 | Minikube | v1.39.0 |
 | Kubernetes (servidor) | v1.37.0 |
 | kubectl | v1.37.1 |
 | Docker | 29.1.3 |
+| Python | 3.12 |
+| PostgreSQL | 16-alpine |
+| Imagem da API | Conforme [CONTRATOS.md](docs/CONTRATOS.md) (fonte única de tag) |
 
 ## Como rodar
 
 ```bash
 # 1. Iniciar o cluster Minikube, habilitar addons e compilar a imagem da API
+# (O script compila a tag indicada em docs/CONTRATOS.md; para build manual use a tag definida lá)
 ./scripts/setup-cluster.sh
 
 # 2. Aplicar todos os manifestos Kubernetes e exibir a URL do Service
@@ -48,7 +52,11 @@ relatorio/  relatório LaTeX
 # 4. Medir o tempo de self-healing (N execuções) e salvar em relatorio/dados/selfheal.csv
 ./scripts/measure-selfheal.sh 5
 
-# 5. Remover o namespace ha-demo para reiniciar o ambiente do zero (-y pula confirmação)
+# 5. (Opcional) Testar auto-scaling horizontal (HPA) e gerador de carga
+kubectl apply -f extras/50-hpa.yaml
+./scripts/load-hpa.sh
+
+# 6. Remover o namespace ha-demo para reiniciar o ambiente do zero (-y pula confirmação)
 ./scripts/reset.sh -y
 ```
 

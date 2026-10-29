@@ -138,9 +138,10 @@ k8s-alta-disponibilidade/
 │   ├── load-hpa.sh                # gera carga para o HPA
 │   └── reset.sh                   # apaga o namespace (volta ao zero)
 ├── docs/
-│   ├── PLANO.md                   # este arquivo
-│   ├── ROTEIRO-DEMO.md            # script da apresentação, comando a comando
-│   └── diagrama.drawio
+│   ├── CONTRATOS.md               # nomes, portas, variáveis e formatos
+│   ├── CRONOGRAMA.md              # cronograma, fases e marcos
+│   ├── FLUXO.md                   # fluxo de trabalho e regras de PR
+│   └── PLANO.md                   # este arquivo
 └── relatorio/
     ├── main.tex
     ├── secoes/*.tex
