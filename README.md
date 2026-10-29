@@ -34,7 +34,23 @@ relatorio/  relatório LaTeX
 | Docker | 29.1.3 |
 
 ## Como rodar
-> Em construção. Ver issues da milestone *S1 · Setup*.
+
+```bash
+# 1. Iniciar o cluster Minikube, habilitar addons e compilar a imagem da API
+./scripts/setup-cluster.sh
+
+# 2. Aplicar todos os manifestos Kubernetes e exibir a URL do Service
+./scripts/deploy.sh
+
+# 3. Gerar tráfego contínuo mostrando qual pod respondeu e o total de visitas
+./scripts/traffic.sh
+
+# 4. Medir o tempo de self-healing (N execuções) e salvar em relatorio/dados/selfheal.csv
+./scripts/measure-selfheal.sh 5
+
+# 5. Remover o namespace ha-demo para reiniciar o ambiente do zero (-y pula confirmação)
+./scripts/reset.sh -y
+```
 
 ## Datas
 - Entrega: **21/11/2026**
