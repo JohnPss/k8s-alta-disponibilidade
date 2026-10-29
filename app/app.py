@@ -24,7 +24,14 @@ app.json.ensure_ascii = False
 UNHEALTHY_FILE = Path("/tmp/unhealthy")
 CPU_DEFAULT_MS = 200
 CPU_MAX_MS = 2000
+# AUD-01: connect_timeout em segundos. O valor mínimo aceito pela libpq é 2s.
+# Os clientes (index.html e traffic.sh com timeout de 3s) aguardam o tempo necessário
+# para que a API capture a exceção e devolva o fallback HTTP 200 (db="indisponível").
 DB_CONNECT_TIMEOUT = 2
+
+# AUD-05: Flag para assegurar que o DDL (CREATE TABLE) execute no máximo uma vez
+# por processo, evitando contenção em pg_catalog sob tráfego simultâneo.
+_table_ensured = False
 
 CREATE_VISITS = """
 CREATE TABLE IF NOT EXISTS visits (
@@ -54,6 +61,11 @@ def settings():
 app.config.update(settings())
 
 
+# AUD-06: Optou-se por conexão direta por requisição em vez de psycopg_pool.
+# O Gunicorn roda com múltiplos workers (-w 2 --threads 2), onde pools exigiriam
+# cuidados com fork/socket sharing e dependência extra (psycopg_pool). A conexão
+# direta mantém o pod estritamente stateless, seguro pós-fork e garante recuperação
+# graciosa imediata se o pod do Postgres for reiniciado na demonstração ao vivo.
 def connect_db():
     cfg = settings()
     return psycopg.connect(
@@ -72,18 +84,24 @@ def ensure_visits_table(conn):
 
 
 def init_db():
+    global _table_ensured
     try:
         with connect_db() as conn:
             ensure_visits_table(conn)
+            _table_ensured = True
     except Exception:
         return
 
 
 def record_visit(pod):
+    global _table_ensured
     try:
         with connect_db() as conn:
             with conn.cursor() as cur:
-                cur.execute(CREATE_VISITS)
+                # Se o banco subiu após a API, cria a tabela na primeira requisição com sucesso
+                if not _table_ensured:
+                    cur.execute(CREATE_VISITS)
+                    _table_ensured = True
                 cur.execute("INSERT INTO visits (pod) VALUES (%s)", (pod,))
                 cur.execute("SELECT count(*) FROM visits")
                 (count,) = cur.fetchone()

@@ -15,7 +15,8 @@ printf '%-8s  %-28s  %s\n' "HORA" "POD" "VISITAS"
 
 while true; do
   agora="$(date +%H:%M:%S)"
-  if resposta="$(curl -s -f -m 1 "${URL%/}/api/whoami" 2>/dev/null)" && [[ -n "$resposta" ]]; then
+  # AUD-01: -m 3 (3s) para permitir o fallback da API caso o banco caia (timeout do banco na API = 2s)
+  if resposta="$(curl -s -f -m 3 "${URL%/}/api/whoami" 2>/dev/null)" && [[ -n "$resposta" ]]; then
     if command -v jq >/dev/null 2>&1; then
       pod="$(printf '%s' "$resposta" | jq -r '.pod // "?"')"
       visitas="$(printf '%s' "$resposta" | jq -r 'if .visits == null then "indisponível" else (.visits | tostring) end')"

@@ -29,7 +29,7 @@ spec:
             allowPrivilegeEscalation: false
       containers:
         - name: api
-          image: api:1.4              # painel da #52 sobre o código da #20 e da #24
+          image: api:1.5              # ajustes de auditoria v1.0 (AUD-01, 05, 06, 08)
           imagePullPolicy: IfNotPresent # imagem local do Minikube, não baixa do Docker Hub
           ports: [{ containerPort: 8080 }]
           securityContext:            # imagem roda com USER app (não-root) na porta 8080 (AUD-12)

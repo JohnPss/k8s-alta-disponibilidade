@@ -409,7 +409,10 @@
 
     function updateDatabase(data) {
       const dbOk = data.db === "ok" && data.visits !== null && data.visits !== undefined;
-      if (dbOk) lastVisits = data.visits;
+      // AUD-08: Atualiza lastVisits apenas se for maior para evitar regressão visual com requisições paralelas fora de ordem
+      if (dbOk && (lastVisits === null || data.visits > lastVisits)) {
+        lastVisits = data.visits;
+      }
 
       fields.dbPill.hidden = false;
       fields.dbPill.textContent = dbOk ? "ok" : "fora do ar";
@@ -460,7 +463,8 @@
     async function fetchWhoami() {
       const response = await fetch("/api/whoami", {
         cache: "no-store",
-        signal: AbortSignal.timeout(1000)
+        // AUD-01: Timeout de 3s para permitir que a API capture o timeout do Postgres (2s) e devolva fallback gracioso
+        signal: AbortSignal.timeout(3000)
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
