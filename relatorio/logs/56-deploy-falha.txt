@@ -1,0 +1,29 @@
+2026-10-29T17:11:47-03:00
+cc48d10 #56 Postgres: ajustes pós-review do #54 (deploy, recursos, probe, imagem offline) (#66)
+
+$ git diff --stat; grep -n 'image:' k8s/21-postgres-statefulset.yaml
+ k8s/21-postgres-statefulset.yaml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+21:          image: postgres:nao-existe
+[exit 0]
+
+$ ./scripts/deploy.sh
+==> Aplicando manifestos Kubernetes...
+namespace/ha-demo unchanged
+configmap/api-config unchanged
+secret/db-credentials configured
+service/postgres unchanged
+statefulset.apps/postgres configured
+deployment.apps/api unchanged
+service/api unchanged
+networkpolicy.networking.k8s.io/postgres-allow-api unchanged
+==> Aguardando rollout do PostgreSQL...
+Waiting for partitioned roll out to finish: 0 out of 1 new pods have been updated...
+error: timed out waiting for the condition
+[exit 1]
+
+$ kubectl get pod postgres-0 -n ha-demo
+NAME         READY   STATUS             RESTARTS   AGE
+postgres-0   0/1     ImagePullBackOff   0          3m
+[exit 0]
+

@@ -1,0 +1,5 @@
+$ kubectl run intruso --rm -i --quiet --restart=Never -n ha-demo --image=busybox:1.36 -- sh -c "sleep 2; nc -zv -w 2 postgres 5432"
+nc: postgres (10.244.54.229:5432): Connection timed out
+pod ha-demo/intruso terminated (Error)
+[exit 1]
+
