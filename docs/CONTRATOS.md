@@ -47,6 +47,9 @@ Funciona em Linux, Windows e Mac. O `http://$(minikube ip):30080` só funciona d
 
 O Postgres usa as **mesmas** chaves: `POSTGRES_USER` ← `DB_USER`, `POSTGRES_PASSWORD` ← `DB_PASSWORD` e `POSTGRES_DB` ← `DB_NAME`.
 
+> [!WARNING]
+> **Credenciais × PVC:** `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` só são aplicados no **primeiro** `initdb`. Como o PVC (`data-postgres-0`) persiste os dados entre recriações do pod, alterar o Secret `db-credentials` ou o ConfigMap `api-config` depois não altera as credenciais do banco existente. Para trocar a senha/usuário, faça isso via SQL dentro do banco (`ALTER USER ...`) ou delete o PVC `data-postgres-0` para recriar o banco do zero.
+
 ---
 
 ## 3. API HTTP (porta 8080)
@@ -100,7 +103,9 @@ docker run -d --name pg-dev -p 5432:5432 -e POSTGRES_USER=app -e POSTGRES_PASSWO
 
 ---
 
-## 5. Recursos e probes (Deployment da API)
+## 5. Recursos e probes
+
+### 5.1 Deployment da API
 
 | Item | Valor |
 |---|---|
@@ -109,6 +114,15 @@ docker run -d --name pg-dev -p 5432:5432 -e POSTGRES_USER=app -e POSTGRES_PASSWO
 | readinessProbe | `GET /readyz` `:8080`, `initialDelaySeconds: 2`, `periodSeconds: 3` |
 | livenessProbe | `GET /healthz` `:8080`, `initialDelaySeconds: 5`, `periodSeconds: 5`, `failureThreshold: 3` |
 | strategy | `RollingUpdate`, `maxSurge: 1`, `maxUnavailable: 0` |
+
+### 5.2 StatefulSet do Postgres
+
+| Item | Valor |
+|---|---|
+| requests | `cpu: 250m`, `memory: 256Mi` |
+| limits | `cpu: 250m`, `memory: 512Mi` |
+| readinessProbe | `exec: pg_isready -U $POSTGRES_USER -d $POSTGRES_DB -h 127.0.0.1`, `initialDelaySeconds: 5`, `periodSeconds: 5`, `timeoutSeconds: 3`, `failureThreshold: 3` |
+| livenessProbe | `exec: pg_isready -U $POSTGRES_USER -d $POSTGRES_DB -h 127.0.0.1`, `initialDelaySeconds: 15`, `periodSeconds: 10`, `timeoutSeconds: 3`, `failureThreshold: 5` |
 
 ---
 
@@ -120,7 +134,7 @@ docker run -d --name pg-dev -p 5432:5432 -e POSTGRES_USER=app -e POSTGRES_PASSWO
 
 | Script | Dono | O que faz |
 |---|---|---|
-| `setup-cluster.sh` | João Vitor | `minikube start` (calico, 4 CPU, 6 GB) + addon metrics-server + build da imagem |
+| `setup-cluster.sh` | João Vitor | `minikube start` (calico, 4 CPU, 6 GB) + addon metrics-server + build da imagem + pull da imagem do Postgres |
 | `deploy.sh` | Bernardo | `kubectl apply -f k8s/` + espera o rollout + imprime a URL |
 | `traffic.sh` | João Vitor | Loop de `curl $URL/api/whoami` imprimindo `hora  pod  visitas` |
 | `measure-selfheal.sh` | João Vitor | Deleta 1 pod, faz curl a cada 100 ms e grava o CSV |
