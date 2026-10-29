@@ -1,12 +1,12 @@
-2026-10-29T20:40:06-03:00
-5fc9b82 #71 Auditoria v1.0: robustez dos scripts (AUD-02, 03, 04, 07, 09, 14) (#76)
+2026-10-29T20:53:57-03:00
+00ba4e8 #22 Teste de persistência (deletar postgres-0): logs, prints e CSV
 
 $ kubectl get pods -n ha-demo -o wide
-NAME                   READY   STATUS    RESTARTS   AGE     IP              NODE       NOMINATED NODE   READINESS GATES
-api-64fb6b9464-42kt5   1/1     Running   0          6m8s    10.244.54.233   ha-teste   <none>           <none>
-api-64fb6b9464-9875j   1/1     Running   0          6m8s    10.244.54.197   ha-teste   <none>           <none>
-api-64fb6b9464-pl5v6   1/1     Running   0          6m8s    10.244.54.196   ha-teste   <none>           <none>
-postgres-0             1/1     Running   0          2m46s   10.244.54.229   ha-teste   <none>           <none>
+NAME                   READY   STATUS    RESTARTS        AGE   IP              NODE       NOMINATED NODE   READINESS GATES
+api-64fb6b9464-42kt5   1/1     Running   1 (4m41s ago)   19m   10.244.54.240   ha-teste   <none>           <none>
+api-64fb6b9464-9875j   1/1     Running   1 (4m41s ago)   19m   10.244.54.243   ha-teste   <none>           <none>
+api-64fb6b9464-pl5v6   1/1     Running   1 (4m41s ago)   19m   10.244.54.237   ha-teste   <none>           <none>
+postgres-0             1/1     Running   0               77s   10.244.54.239   ha-teste   <none>           <none>
 [exit 0]
 
 $ kubectl get pvc -n ha-demo -o custom-columns=NAME:.metadata.name,UID:.metadata.uid,AGE:.metadata.creationTimestamp
@@ -15,53 +15,53 @@ data-postgres-0   873f564d-32f8-4e88-8472-cb408247b7b9   2026-10-29T23:33:58Z
 [exit 0]
 
 $ for i in $(seq 1 20); do curl -s http://192.168.58.2:30080/api/whoami; echo; done
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":173,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.243","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":294,"db":"ok","timestamp":"2026-10-29T23:53:57Z"}
 
-{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":174,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.237","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":295,"db":"ok","timestamp":"2026-10-29T23:53:57Z"}
 
-{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":175,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.237","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":296,"db":"ok","timestamp":"2026-10-29T23:53:57Z"}
 
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":176,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":297,"db":"ok","timestamp":"2026-10-29T23:53:57Z"}
 
-{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":177,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":298,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":178,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.237","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":299,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":179,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.243","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":300,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":180,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.243","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":301,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":181,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":302,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":182,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":303,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":183,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.237","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":304,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":184,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.243","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":305,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":185,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":306,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":186,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.237","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":307,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":187,"db":"ok","timestamp":"2026-10-29T23:40:06Z"}
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.237","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":308,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":188,"db":"ok","timestamp":"2026-10-29T23:40:07Z"}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.243","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":309,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":189,"db":"ok","timestamp":"2026-10-29T23:40:07Z"}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.243","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":310,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":190,"db":"ok","timestamp":"2026-10-29T23:40:07Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":311,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":191,"db":"ok","timestamp":"2026-10-29T23:40:07Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":312,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":192,"db":"ok","timestamp":"2026-10-29T23:40:07Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":313,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 [exit 0]
 
 $ curl -s http://192.168.58.2:30080/api/whoami
-{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":193,"db":"ok","timestamp":"2026-10-29T23:40:07Z"}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.243","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":314,"db":"ok","timestamp":"2026-10-29T23:53:58Z"}
 [exit 0]
 
 $ date --iso-8601=seconds
-2026-10-29T20:40:07-03:00
+2026-10-29T20:53:58-03:00
 [exit 0]
 
 $ kubectl delete pod postgres-0 -n ha-demo
@@ -71,12 +71,12 @@ pod "postgres-0" deleted from ha-demo namespace
 $ curl -i -s http://192.168.58.2:30080/api/whoami
 HTTP/1.1 200 OK
 Server: gunicorn
-Date: Thu, 29 Oct 2026 23:40:07 GMT
+Date: Thu, 29 Oct 2026 23:53:59 GMT
 Connection: close
 Content-Type: application/json
 Content-Length: 209
 
-{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":null,"db":"indisponível","timestamp":"2026-10-29T23:40:07Z"}
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.237","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":null,"db":"indisponível","timestamp":"2026-10-29T23:53:59Z"}
 [exit 0]
 
 $ kubectl get pods -n ha-demo -l app=postgres
@@ -84,25 +84,16 @@ NAME         READY   STATUS              RESTARTS   AGE
 postgres-0   0/1     ContainerCreating   0          0s
 [exit 0]
 
-$ google-chrome --headless=new --screenshot=relatorio/figuras/22-painel-banco-fora.png --window-size=1600,1000 --virtual-time-budget=8000 http://192.168.58.2:30080
-[3619643:7:1029/204008.188801:ERROR:gpu/ipc/client/command_buffer_proxy_impl.cc:285] ContextResult::kTransientFailure: Failed to send GpuControl.CreateCommandBuffer.
-91413 bytes written to file relatorio/figuras/22-painel-banco-fora.png
-[exit 0]
-
 $ kubectl wait --for=condition=Ready pod/postgres-0 -n ha-demo --timeout=120s
 pod/postgres-0 condition met
 [exit 0]
 
 $ date --iso-8601=seconds
-2026-10-29T20:40:13-03:00
-[exit 0]
-
-$ google-chrome --headless=new --screenshot=relatorio/figuras/22-painel-banco-ok.png --window-size=1600,1000 --virtual-time-budget=8000 http://192.168.58.2:30080
-89924 bytes written to file relatorio/figuras/22-painel-banco-ok.png
+2026-10-29T20:54:05-03:00
 [exit 0]
 
 $ curl -s http://192.168.58.2:30080/api/whoami
-{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":239,"db":"ok","timestamp":"2026-10-29T23:40:15Z"}
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.240","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":315,"db":"ok","timestamp":"2026-10-29T23:54:05Z"}
 [exit 0]
 
 $ kubectl get pvc -n ha-demo -o custom-columns=NAME:.metadata.name,UID:.metadata.uid,AGE:.metadata.creationTimestamp
