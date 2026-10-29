@@ -1,0 +1,102 @@
+2026-10-29T20:40:50-03:00
+5fc9b82 #71 Auditoria v1.0: robustez dos scripts (AUD-02, 03, 04, 07, 09, 14) (#76)
+
+$ kubectl get pods -n ha-demo -o wide
+NAME                   READY   STATUS    RESTARTS   AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+api-64fb6b9464-42kt5   1/1     Running   0          6m52s   10.244.54.233   ha-teste   <none>           <none>
+api-64fb6b9464-9875j   1/1     Running   0          6m52s   10.244.54.197   ha-teste   <none>           <none>
+api-64fb6b9464-pl5v6   1/1     Running   0          6m52s   10.244.54.196   ha-teste   <none>           <none>
+postgres-0             1/1     Running   0          43s     10.244.54.220   ha-teste   <none>           <none>
+[exit 0]
+
+$ kubectl get pvc -n ha-demo -o custom-columns=NAME:.metadata.name,UID:.metadata.uid,AGE:.metadata.creationTimestamp
+NAME              UID                                    AGE
+data-postgres-0   873f564d-32f8-4e88-8472-cb408247b7b9   2026-10-29T23:33:58Z
+[exit 0]
+
+$ for i in $(seq 1 20); do curl -s http://192.168.58.2:30080/api/whoami; echo; done
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":240,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":241,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":242,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":243,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":244,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":245,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":246,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":247,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":248,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":249,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":250,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":251,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":252,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":253,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-42kt5","pod_ip":"10.244.54.233","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":254,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":255,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":256,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":257,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":258,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":259,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+[exit 0]
+
+$ curl -s http://192.168.58.2:30080/api/whoami
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":260,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+[exit 0]
+
+$ date --iso-8601=seconds
+2026-10-29T20:40:50-03:00
+[exit 0]
+
+$ kubectl delete pod postgres-0 -n ha-demo
+pod "postgres-0" deleted from ha-demo namespace
+[exit 0]
+
+$ curl -i -s http://192.168.58.2:30080/api/whoami
+HTTP/1.1 200 OK
+Server: gunicorn
+Date: Thu, 29 Oct 2026 23:40:52 GMT
+Connection: close
+Content-Type: application/json
+Content-Length: 209
+
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":null,"db":"indisponível","timestamp":"2026-10-29T23:40:52Z"}
+[exit 0]
+
+$ kubectl get pods -n ha-demo -l app=postgres
+NAME         READY   STATUS              RESTARTS   AGE
+postgres-0   0/1     ContainerCreating   0          0s
+[exit 0]
+
+$ kubectl wait --for=condition=Ready pod/postgres-0 -n ha-demo --timeout=120s
+pod/postgres-0 condition met
+[exit 0]
+
+$ date --iso-8601=seconds
+2026-10-29T20:40:58-03:00
+[exit 0]
+
+$ curl -s http://192.168.58.2:30080/api/whoami
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":261,"db":"ok","timestamp":"2026-10-29T23:40:58Z"}
+[exit 0]
+
+$ kubectl get pvc -n ha-demo -o custom-columns=NAME:.metadata.name,UID:.metadata.uid,AGE:.metadata.creationTimestamp
+NAME              UID                                    AGE
+data-postgres-0   873f564d-32f8-4e88-8472-cb408247b7b9   2026-10-29T23:33:58Z
+[exit 0]
