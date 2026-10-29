@@ -55,6 +55,8 @@ fi
 echo "==> 7. Pré-carregando imagens para execução offline..."
 echo "Baixando imagem do PostgreSQL (postgres:16-alpine)..."
 minikube image pull postgres:16-alpine
+echo "Baixando imagem do BusyBox (busybox:1.36)..."
+minikube image pull busybox:1.36
 
 echo ""
 echo "=========================================================="

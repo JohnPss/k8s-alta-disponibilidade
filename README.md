@@ -52,6 +52,37 @@ relatorio/  relatório LaTeX
 ./scripts/reset.sh -y
 ```
 
+## Demo offline
+
+Para garantir que a apresentação funcione em ambientes sem acesso à internet ou com Wi-Fi instável, todas as imagens necessárias são mantidas em cache local no Minikube e os manifestos utilizam `imagePullPolicy: IfNotPresent`:
+
+| Imagem | Origem | Finalidade |
+|---|---|---|
+| `api:1.4` | Build local (`minikube image build`) | Imagem da API Flask com 3 réplicas |
+| `postgres:16-alpine` | Pré-carregada (`minikube image pull`) | Banco de dados persistente (StatefulSet) |
+| `busybox:1.36` | Pré-carregada (`minikube image pull`) | InitContainer de espera do banco (`wait-for-postgres`) e carga do HPA (`load-hpa.sh`) |
+
+O pré-carregamento é realizado automaticamente pelo passo 7 do `./scripts/setup-cluster.sh`.
+
+### Conferindo as imagens em cache
+
+```bash
+minikube image ls
+```
+
+As imagens `docker.io/library/api:1.4`, `docker.io/library/postgres:16-alpine` e `docker.io/library/busybox:1.36` devem constar na listagem.
+
+### Resultado do teste real sem internet
+
+O isolamento offline foi testado e validado bloqueando o tráfego externo dentro do nó Minikube via `iptables` (mantendo apenas redes internas do cluster) e comprovando a falha de conexão com registros externos (`curl -sS -m 5 https://registry-1.docker.io/v2/`).
+
+Sob essas condições:
+1. `./scripts/reset.sh -y && ./scripts/deploy.sh` recriou todos os recursos e todos os pods (`postgres-0` e réplicas da `api`) atingiram `1/1 Running / Ready` sem nenhum evento de `ImagePullBackOff`.
+2. `./scripts/load-hpa.sh` subiu o pod `load` com `busybox:1.36` diretamente do cache local, alcançando `Ready` de forma instantânea.
+3. Ao término, as regras de firewall foram removidas e a conectividade com a internet foi restaurada com sucesso.
+
+O registro completo da execução real está em [`relatorio/logs/27-offline.txt`](relatorio/logs/27-offline.txt).
+
 ## Datas
 - Entrega: **21/11/2026**
 - Apresentação: **23/11/2026**
