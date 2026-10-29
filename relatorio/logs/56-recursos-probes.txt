@@ -1,0 +1,10 @@
+$ kubectl get pod postgres-0 -n ha-demo -o jsonpath='{range .spec.containers[0]}requests: {.resources.requests}{"\n"}limits:   {.resources.limits}{"\n"}{end}'
+requests: {"cpu":"250m","memory":"256Mi"}
+limits:   {"cpu":"250m","memory":"512Mi"}
+[exit 0]
+
+$ kubectl describe pod postgres-0 -n ha-demo | grep -E 'Liveness|Readiness'
+    Liveness:   exec [/bin/sh -c exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1] delay=15s timeout=3s period=10s successThreshold=1 failureThreshold=5
+    Readiness:  exec [/bin/sh -c exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1] delay=5s timeout=3s period=5s successThreshold=1 failureThreshold=3
+[exit 0]
+

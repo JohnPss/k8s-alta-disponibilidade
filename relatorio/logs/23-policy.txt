@@ -1,0 +1,32 @@
+2026-10-29T17:16:19-03:00
+cc48d10 #56 Postgres: ajustes pós-review do #54 (deploy, recursos, probe, imagem offline) (#66)
+
+$ kubectl get pods -n kube-system -l k8s-app=calico-node
+NAME                READY   STATUS    RESTARTS   AGE
+calico-node-s8zlk   1/1     Running   0          11m
+[exit 0]
+
+$ kubectl get pods -n ha-demo -L app
+NAME                   READY   STATUS    RESTARTS   AGE   APP
+api-58cf7fff8c-mmn87   1/1     Running   0          10m   api
+api-58cf7fff8c-sr7dz   1/1     Running   0          10m   api
+api-58cf7fff8c-wjz9r   1/1     Running   0          10m   api
+postgres-0             1/1     Running   0          91s   postgres
+[exit 0]
+
+$ kubectl describe networkpolicy postgres-allow-api -n ha-demo
+Name:         postgres-allow-api
+Namespace:    ha-demo
+Created on:   2026-10-29 17:15:27 -0300 -03
+Labels:       app=postgres
+Annotations:  <none>
+Spec:
+  PodSelector:     app=postgres
+  Allowing ingress traffic:
+    To Port: 5432/TCP
+    From:
+      PodSelector: app=api
+  Not affecting egress traffic
+  Policy Types: Ingress
+[exit 0]
+

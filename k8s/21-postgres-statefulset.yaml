@@ -23,6 +23,10 @@ spec:
           ports:
             - containerPort: 5432
               name: postgres
+          # NOTA (Segurança / AUD-12): securityContext (runAsNonRoot/allowPrivilegeEscalation/fsGroup)
+          # intencionalmente não aplicado: o entrypoint oficial precisa de root inicial para
+          # ajustar permissões (0700) e executar su-exec no volume minikube-hostpath sem quebrar o initdb.
+          #
           # IMPORTANTE (Credenciais x PVC): As variáveis POSTGRES_USER, POSTGRES_PASSWORD
           # e POSTGRES_DB só têm efeito na inicialização inicial do banco (initdb).
           # Como os dados persistem no volume 'data' (PVC data-postgres-0), alterar

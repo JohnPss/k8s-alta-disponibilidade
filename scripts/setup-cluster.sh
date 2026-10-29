@@ -19,7 +19,7 @@ if [[ "$NS" != "ha-demo" ]]; then
   echo "ERRO: O namespace suportado pelo projeto é estritamente 'ha-demo' (ver docs/CONTRATOS.md)." >&2
   exit 1
 fi
-IMAGE="${IMAGE:-api:1.4}" # mesma tag de k8s/30-api-deployment.yaml
+IMAGE="${IMAGE:-api:1.5}" # mesma tag de k8s/30-api-deployment.yaml
 
 echo "==> 1. Verificando pré-requisitos locais..."
 command -v docker >/dev/null 2>&1 || { echo "ERRO: Docker não está instalado."; exit 1; }
@@ -59,6 +59,8 @@ echo "Imagem $IMAGE construída com sucesso."
 echo "==> 7. Pré-carregando imagens para execução offline..."
 echo "Baixando imagem do PostgreSQL (postgres:16-alpine)..."
 minikube image pull postgres:16-alpine
+echo "Baixando imagem do BusyBox (busybox:1.36)..."
+minikube image pull busybox:1.36
 
 echo ""
 echo "=========================================================="

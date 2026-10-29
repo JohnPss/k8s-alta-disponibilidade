@@ -10,7 +10,7 @@
 | Item | Valor |
 |---|---|
 | Namespace | `ha-demo` |
-| Imagem da API | `api:1.4` (mudou o código? gere a próxima tag, `api:1.5`…, e atualize o Deployment e o `setup-cluster.sh`) |
+| Imagem da API | `api:1.5` (mudou o código? gere a próxima tag, `api:1.6`…, e atualize o Deployment e o `setup-cluster.sh`) |
 | Deployment da API | `api` (label `app: api`, container `api`) |
 | Service da API | `api`, tipo `NodePort`, `port: 80` → `targetPort: 8080`, `nodePort: 30080` |
 | StatefulSet do banco | `postgres` (label `app: postgres`, container `postgres`) |
@@ -111,6 +111,9 @@ docker run -d --name pg-dev -p 5432:5432 -e POSTGRES_USER=app -e POSTGRES_PASSWO
 |---|---|
 | requests | `cpu: 100m`, `memory: 64Mi` |
 | limits | `cpu: 250m`, `memory: 128Mi` |
+| initContainer requests | `cpu: 10m`, `memory: 16Mi` |
+| initContainer limits | `cpu: 50m`, `memory: 32Mi` |
+| securityContext | `runAsNonRoot: true`, `runAsUser: 999`, `runAsGroup: 999`, `allowPrivilegeEscalation: false` (container `api`) / `allowPrivilegeEscalation: false` (initContainer) |
 | readinessProbe | `GET /readyz` `:8080`, `initialDelaySeconds: 2`, `periodSeconds: 3` |
 | livenessProbe | `GET /healthz` `:8080`, `initialDelaySeconds: 5`, `periodSeconds: 5`, `failureThreshold: 3` |
 | strategy | `RollingUpdate`, `maxSurge: 1`, `maxUnavailable: 0` |
@@ -121,6 +124,7 @@ docker run -d --name pg-dev -p 5432:5432 -e POSTGRES_USER=app -e POSTGRES_PASSWO
 |---|---|
 | requests | `cpu: 250m`, `memory: 256Mi` |
 | limits | `cpu: 250m`, `memory: 512Mi` |
+| securityContext | Omitido (preserva privilégios de root/su-exec para initdb no minikube hostpath) |
 | readinessProbe | `exec: pg_isready -U $POSTGRES_USER -d $POSTGRES_DB -h 127.0.0.1`, `initialDelaySeconds: 5`, `periodSeconds: 5`, `timeoutSeconds: 3`, `failureThreshold: 3` |
 | livenessProbe | `exec: pg_isready -U $POSTGRES_USER -d $POSTGRES_DB -h 127.0.0.1`, `initialDelaySeconds: 15`, `periodSeconds: 10`, `timeoutSeconds: 3`, `failureThreshold: 5` |
 
