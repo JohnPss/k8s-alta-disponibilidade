@@ -1,0 +1,178 @@
+==========================================================
+Teste de Execucao Offline (Sem Internet) - Issue #27
+Data: 2026-10-29T17:51:06-03:00
+Perfil Minikube: ha-teste
+==========================================================
+
+=== [1] Verificando e garantindo imagens no Minikube ===
+$ minikube start
+* [ha-teste] minikube v1.39.0 on Ubuntu 24.04
+  - MINIKUBE_PROFILE=ha-teste
+* Using the docker driver based on existing profile
+* Starting "ha-teste" primary control-plane node in "ha-teste" cluster
+* Pulling base image v0.0.51 ...
+* Preparing Kubernetes v1.37.0 on containerd 2.3.4 ...
+* Verifying Kubernetes components...
+  - Using image registry.k8s.io/metrics-server/metrics-server:v0.9.0
+  - Using image gcr.io/k8s-minikube/storage-provisioner:v5
+* Enabled addons: storage-provisioner, default-storageclass, metrics-server
+* Done! kubectl is now configured to use "ha-teste" cluster and "default" namespace by default
+
+$ minikube image build -t api:1.4 ./app
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 893B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12-slim
+#2 DONE 0.9s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 178B done
+#3 DONE 0.0s
+
+#4 [1/7] FROM docker.io/library/python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159
+#4 resolve docker.io/library/python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 267B done
+#5 DONE 0.0s
+
+#6 [4/7] COPY requirements.txt .
+#6 CACHED
+
+#7 [6/7] COPY . .
+#7 CACHED
+
+#8 [5/7] RUN pip install --no-cache-dir -r requirements.txt
+#8 CACHED
+
+#9 [2/7] RUN groupadd -r app && useradd -r -g app app
+#9 CACHED
+
+#10 [3/7] WORKDIR /app
+#10 CACHED
+
+#11 [7/7] RUN chown -R app:app /app
+#11 CACHED
+
+#12 exporting to image
+#12 exporting layers done
+#12 exporting manifest sha256:f2a4012c946c2b7c615772cff94e5395aac24bfbd50e5b508200b92255fec051 done
+#12 exporting config sha256:97a55f3d1a1c5ca3a5beef774f5ab8ca1467aa573c6c4b5dd4cd322789ff6ca0 done
+#12 naming to docker.io/library/api:1.4 done
+#12 DONE 0.0s
+
+$ minikube image pull busybox:1.36
+
+$ minikube image pull postgres:16-alpine
+
+$ minikube image ls
+docker.io/library/postgres:16-alpine
+docker.io/library/busybox:1.36
+docker.io/library/api:1.4
+
+=== [2] Bloqueando acesso externo a internet no no Minikube ===
+$ minikube ssh -- 'for c in OUTPUT FORWARD; do sudo iptables -I $c 1 ! -d 10.0.0.0/8 -m conntrack ! --ctstate ESTABLISHED,RELATED -j REJECT; sudo iptables -I $c 1 -d 192.168.0.0/16 -j ACCEPT; sudo iptables -I $c 1 -d 127.0.0.0/8 -j ACCEPT; done'
+
+$ minikube ssh -- curl -sS -m 5 https://registry-1.docker.io/v2/ (deve falhar)
+curl: (7) Failed to connect to registry-1.docker.io port 443 after 3601 ms: Couldn't connect to server
+ssh: Process exited with status 7
+Sucesso: Acesso externo bloqueado com rejeicao de conexao.
+
+=== [3] Executando reset do namespace e deploy offline ===
+$ ./scripts/reset.sh -y && ./scripts/deploy.sh
+==> Removendo namespace 'ha-demo'...
+namespace "ha-demo" deleted
+==> Namespace 'ha-demo' removido com sucesso.
+==> Aplicando manifestos Kubernetes...
+namespace/ha-demo created
+configmap/api-config created
+secret/db-credentials created
+service/postgres created
+statefulset.apps/postgres created
+deployment.apps/api created
+service/api created
+networkpolicy.networking.k8s.io/postgres-allow-api created
+==> Aguardando rollout do PostgreSQL...
+Waiting for 1 pods to be ready...
+partitioned roll out complete: 1 new pods have been updated...
+==> Aguardando rollout da API...
+Waiting for deployment "api" rollout to finish: 0 of 3 updated replicas are available...
+Waiting for deployment "api" rollout to finish: 1 of 3 updated replicas are available...
+Waiting for deployment "api" rollout to finish: 2 of 3 updated replicas are available...
+deployment "api" successfully rolled out
+==> Pods no namespace ha-demo:
+NAME                   READY   STATUS    RESTARTS   AGE   IP              NODE       NOMINATED NODE   READINESS GATES
+api-5bc465bccb-bnc9k   1/1     Running   0          12s   10.244.54.199   ha-teste   <none>           <none>
+api-5bc465bccb-fv6p7   1/1     Running   0          12s   10.244.54.213   ha-teste   <none>           <none>
+api-5bc465bccb-vrj79   1/1     Running   0          12s   10.244.54.210   ha-teste   <none>           <none>
+postgres-0             1/1     Running   0          12s   10.244.54.212   ha-teste   <none>           <none>
+URL: http://192.168.58.2:30080
+
+=== [4] Verificando pods e ausencia de ImagePullBackOff ===
+$ kubectl get pods -n ha-demo -o wide
+NAME                   READY   STATUS    RESTARTS   AGE   IP              NODE       NOMINATED NODE   READINESS GATES
+api-5bc465bccb-bnc9k   1/1     Running   0          12s   10.244.54.199   ha-teste   <none>           <none>
+api-5bc465bccb-fv6p7   1/1     Running   0          12s   10.244.54.213   ha-teste   <none>           <none>
+api-5bc465bccb-vrj79   1/1     Running   0          12s   10.244.54.210   ha-teste   <none>           <none>
+postgres-0             1/1     Running   0          12s   10.244.54.212   ha-teste   <none>           <none>
+
+$ kubectl get events -n ha-demo
+12s         Normal    Pulled                  pod/api-5bc465bccb-vrj79                Container image "busybox:1.36" already present on machine and can be accessed by the pod
+12s         Normal    Created                 pod/postgres-0                          Container created
+12s         Normal    Pulled                  pod/postgres-0                          Container image "postgres:16-alpine" already present on machine and can be accessed by the pod
+12s         Normal    Started                 pod/api-5bc465bccb-bnc9k                Container started
+12s         Normal    Started                 pod/api-5bc465bccb-fv6p7                Container started
+12s         Normal    Created                 pod/api-5bc465bccb-vrj79                Container created
+6s          Normal    Started                 pod/api-5bc465bccb-bnc9k                Container started
+6s          Normal    Created                 pod/api-5bc465bccb-bnc9k                Container created
+6s          Normal    Pulled                  pod/api-5bc465bccb-bnc9k                Container image "api:1.4" already present on machine and can be accessed by the pod
+6s          Normal    Pulled                  pod/api-5bc465bccb-fv6p7                Container image "api:1.4" already present on machine and can be accessed by the pod
+6s          Normal    Created                 pod/api-5bc465bccb-fv6p7                Container created
+6s          Normal    Started                 pod/api-5bc465bccb-fv6p7                Container started
+6s          Normal    Started                 pod/api-5bc465bccb-vrj79                Container started
+6s          Normal    Created                 pod/api-5bc465bccb-vrj79                Container created
+6s          Normal    Pulled                  pod/api-5bc465bccb-vrj79                Container image "api:1.4" already present on machine and can be accessed by the pod
+
+=== [5] Testando pod gerador de carga com busybox (scripts/load-hpa.sh) ===
+$ timeout --preserve-status 15s ./scripts/load-hpa.sh
+==> Iniciando pod gerador de carga (load, 6 fluxos em /api/cpu?ms=200) no namespace ha-demo...
+==> Pressione Ctrl+C para parar a carga.
+pod/load created
+==> Carga ativa! Acompanhe em outro terminal com: kubectl get hpa -n ha-demo -w
+$ kubectl wait --for=condition=Ready pod/load -n ha-demo --timeout=30s
+pod/load condition met
+
+Status de todos os pods durante a carga (incluindo load):
+NAME                   READY   STATUS    RESTARTS   AGE   IP              NODE       NOMINATED NODE   READINESS GATES
+api-5bc465bccb-bnc9k   1/1     Running   0          17s   10.244.54.199   ha-teste   <none>           <none>
+api-5bc465bccb-fv6p7   1/1     Running   0          17s   10.244.54.213   ha-teste   <none>           <none>
+api-5bc465bccb-vrj79   1/1     Running   0          17s   10.244.54.210   ha-teste   <none>           <none>
+load                   1/1     Running   0          4s    10.244.54.208   ha-teste   <none>           <none>
+postgres-0             1/1     Running   0          17s   10.244.54.212   ha-teste   <none>           <none>
+
+Aguardando conclusao e limpeza automatica do load-hpa.sh...
+Terminated
+
+==> Encerrando carga e removendo pod load no namespace ha-demo...
+==> Pod load removido.
+
+=== [6] Restaurando acesso a internet no no Minikube ===
+$ minikube ssh -- 'for c in OUTPUT FORWARD; do sudo iptables -D $c ! -d 10.0.0.0/8 -m conntrack ! --ctstate ESTABLISHED,RELATED -j REJECT; sudo iptables -D $c -d 192.168.0.0/16 -j ACCEPT; sudo iptables -D $c -d 127.0.0.0/8 -j ACCEPT; done'
+
+$ minikube ssh -- curl -sS -m 5 https://registry-1.docker.io/v2/ (deve responder)
+{"errors":[{"code":"UNAUTHORIZED","message":"authentication required","detail":null}]}
+
+Sucesso: Conectividade com a internet restaurada.
+
+=== [7] Parando o cluster Minikube ===
+$ minikube stop
+* Stopping node "ha-teste"  ...
+* Powering off "ha-teste" via SSH ...
+* 1 node stopped.
+
+==========================================================
+Teste offline concluido com sucesso!
+Data: 2026-10-29T17:52:04-03:00
+==========================================================
