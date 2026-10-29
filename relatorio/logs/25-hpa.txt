@@ -1,0 +1,88 @@
+=== [1] Estado inicial (sem carga) ===
+2026-10-28T21:45:31-03:00
+$ kubectl apply -f extras/50-hpa.yaml
+horizontalpodautoscaler.autoscaling/api created
+
+$ kubectl top pods -n ha-demo
+NAME                   CPU(cores)   MEMORY(bytes)   
+api-58cf7fff8c-9sfbd   2m           76Mi            
+api-58cf7fff8c-gwbkm   2m           76Mi            
+api-58cf7fff8c-lch8q   2m           76Mi            
+postgres-0             6m           25Mi            
+
+$ kubectl get hpa -n ha-demo
+NAME   REFERENCE        TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+api    Deployment/api   cpu: 2%/50%   3         10        3          80s
+
+$ kubectl get pods -n ha-demo -o wide
+NAME                   READY   STATUS    RESTARTS   AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+api-58cf7fff8c-9sfbd   1/1     Running   0          2m30s   10.244.120.73   minikube   <none>           <none>
+api-58cf7fff8c-gwbkm   1/1     Running   0          2m30s   10.244.120.71   minikube   <none>           <none>
+api-58cf7fff8c-lch8q   1/1     Running   0          2m30s   10.244.120.72   minikube   <none>           <none>
+postgres-0             1/1     Running   0          2m30s   10.244.120.74   minikube   <none>           <none>
+
+=== [2] Sob carga (./scripts/load-hpa.sh) — Escala 3 -> 6 -> 10 ===
+2026-10-28T21:47:45-03:00
+$ kubectl get hpa -n ha-demo -w
+NAME   REFERENCE        TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+api    Deployment/api   cpu: 2%/50%    3         10        3          80s
+api    Deployment/api   cpu: 36%/50%   3         10        3          105s
+api    Deployment/api   cpu: 230%/50%  3         10        3          2m45s
+api    Deployment/api   cpu: 230%/50%  3         10        6          3m
+api    Deployment/api   cpu: 230%/50%  3         10        10         3m15s
+api    Deployment/api   cpu: 176%/50%  3         10        10         3m45s
+api    Deployment/api   cpu: 133%/50%  3         10        10         4m45s
+
+$ kubectl top pods -n ha-demo
+NAME                   CPU(cores)   MEMORY(bytes)   
+api-58cf7fff8c-4n994   141m         76Mi            
+api-58cf7fff8c-68ddr   143m         76Mi            
+api-58cf7fff8c-7jcdt   134m         76Mi            
+api-58cf7fff8c-99xfv   129m         77Mi            
+api-58cf7fff8c-9sfbd   121m         77Mi            
+api-58cf7fff8c-fdnvl   142m         76Mi            
+api-58cf7fff8c-gwbkm   141m         77Mi            
+api-58cf7fff8c-lch8q   113m         77Mi            
+api-58cf7fff8c-m9sqh   133m         78Mi            
+api-58cf7fff8c-q6gpd   135m         76Mi            
+load                   55m          5Mi             
+postgres-0             4m           24Mi            
+
+$ kubectl get pods -n ha-demo -o wide
+NAME                   READY   STATUS    RESTARTS   AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+api-58cf7fff8c-4n994   1/1     Running   0          34s     10.244.120.81   minikube   <none>           <none>
+api-58cf7fff8c-68ddr   1/1     Running   0          34s     10.244.120.80   minikube   <none>           <none>
+api-58cf7fff8c-7jcdt   1/1     Running   0          49s     10.244.120.76   minikube   <none>           <none>
+api-58cf7fff8c-99xfv   1/1     Running   0          34s     10.244.120.82   minikube   <none>           <none>
+api-58cf7fff8c-9sfbd   1/1     Running   0          4m44s   10.244.120.73   minikube   <none>           <none>
+api-58cf7fff8c-fdnvl   1/1     Running   0          34s     10.244.120.79   minikube   <none>           <none>
+api-58cf7fff8c-gwbkm   1/1     Running   0          4m44s   10.244.120.71   minikube   <none>           <none>
+api-58cf7fff8c-lch8q   1/1     Running   0          4m44s   10.244.120.72   minikube   <none>           <none>
+api-58cf7fff8c-m9sqh   1/1     Running   0          49s     10.244.120.77   minikube   <none>           <none>
+api-58cf7fff8c-q6gpd   1/1     Running   0          49s     10.244.120.78   minikube   <none>           <none>
+load                   1/1     Running   0          2m14s   10.244.120.75   minikube   <none>           <none>
+postgres-0             1/1     Running   0          4m44s   10.244.120.74   minikube   <none>           <none>
+
+=== [3] Após interromper a carga (Ctrl+C em load-hpa.sh) — Redução 10 -> 3 ===
+$ ./scripts/load-hpa.sh
+==> Iniciando pod gerador de carga (load, 6 fluxos em /api/cpu?ms=200) no namespace ha-demo...
+==> Pressione Ctrl+C para parar a carga.
+pod/load created
+==> Carga ativa! Acompanhe em outro terminal com: kubectl get hpa -n ha-demo -w
+^C
+==> Encerrando carga e removendo pod load no namespace ha-demo...
+==> Pod load removido.
+
+$ kubectl get hpa -n ha-demo -w
+NAME   REFERENCE        TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+api    Deployment/api   cpu: 133%/50%  3         10        10         28m
+api    Deployment/api   cpu: 4%/50%    3         10        10         30m
+api    Deployment/api   cpu: 2%/50%    3         10        10         31m
+api    Deployment/api   cpu: 2%/50%    3         10        3          35m
+
+$ kubectl get pods -n ha-demo
+NAME                   READY   STATUS    RESTARTS   AGE
+api-58cf7fff8c-9sfbd   1/1     Running   0          36m
+api-58cf7fff8c-gwbkm   1/1     Running   0          36m
+api-58cf7fff8c-lch8q   1/1     Running   0          36m
+postgres-0             1/1     Running   0          36m
