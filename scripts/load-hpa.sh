@@ -6,16 +6,25 @@
 set -euo pipefail
 
 NS="${NS:-ha-demo}"
+if [[ "$NS" != "ha-demo" ]]; then
+  echo "ERRO: O namespace suportado pelo projeto é estritamente 'ha-demo' (ver docs/CONTRATOS.md)." >&2
+  exit 1
+fi
+
 POD_NAME="${POD_NAME:-load}"
 MS="${MS:-200}"
 WORKERS="${WORKERS:-6}"
 
 cleanup() {
+  local exit_code=$?
   trap - INT TERM EXIT
   printf '\n\033[33m==> Encerrando carga e removendo pod %s no namespace %s...\033[0m\n' "$POD_NAME" "$NS"
   kubectl delete pod "$POD_NAME" -n "$NS" --ignore-not-found --grace-period=0 --force >/dev/null 2>&1 || true
   printf '\033[32m==> Pod %s removido.\033[0m\n' "$POD_NAME"
-  exit 0
+  if [[ "$exit_code" -eq 130 || "$exit_code" -eq 143 ]]; then
+    exit 0
+  fi
+  exit "$exit_code"
 }
 
 trap cleanup INT TERM EXIT
