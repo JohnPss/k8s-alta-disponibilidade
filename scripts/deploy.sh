@@ -5,6 +5,10 @@
 set -euo pipefail
 
 NS="${NS:-ha-demo}"
+if [[ "$NS" != "ha-demo" ]]; then
+  echo "ERRO: O namespace suportado pelo projeto é estritamente 'ha-demo' (ver docs/CONTRATOS.md)." >&2
+  exit 1
+fi
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 
