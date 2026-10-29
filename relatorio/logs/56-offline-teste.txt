@@ -1,0 +1,23 @@
+# Internet bloqueada dentro do nó do Minikube (iptables REJECT para fora de 10/8, 192.168/16 e 127/8)
+$ minikube ssh -- curl -sS -m 5 -o /dev/null https://registry-1.docker.io/v2/
+curl: (7) Failed to connect to registry-1.docker.io port 443 after 3117 ms: Couldn't connect to server
+ssh: Process exited with status 7
+[exit 1]
+
+$ kubectl delete pod postgres-0 -n ha-demo
+pod "postgres-0" deleted from ha-demo namespace
+[exit 0]
+
+$ kubectl wait --for=condition=Ready pod/postgres-0 -n ha-demo --timeout=120s
+pod/postgres-0 condition met
+[exit 0]
+
+$ kubectl get pod postgres-0 -n ha-demo
+NAME         READY   STATUS    RESTARTS   AGE
+postgres-0   1/1     Running   0          6s
+[exit 0]
+
+$ kubectl get events -n ha-demo --field-selector involvedObject.name=postgres-0,reason=Pulled --sort-by=.lastTimestamp -o custom-columns=REASON:.reason,MESSAGE:.message | tail -1
+Pulled   Container image "postgres:16-alpine" already present on machine and can be accessed by the pod
+[exit 0]
+
