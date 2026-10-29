@@ -11,8 +11,8 @@ cd "$SCRIPT_DIR/.."
 printf '\033[34m==> Aplicando manifestos Kubernetes...\033[0m\n'
 kubectl apply -f k8s/
 
-printf '\033[34m==> Aguardando rollout do PostgreSQL (quando configurado)...\033[0m\n'
-kubectl rollout status statefulset/postgres -n "$NS" --timeout=180s || true
+printf '\033[34m==> Aguardando rollout do PostgreSQL...\033[0m\n'
+kubectl rollout status statefulset/postgres -n "$NS" --timeout=180s
 
 printf '\033[34m==> Aguardando rollout da API...\033[0m\n'
 kubectl rollout status deployment/api -n "$NS" --timeout=180s

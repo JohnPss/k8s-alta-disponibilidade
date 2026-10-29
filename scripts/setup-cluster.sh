@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Inicializa e configura o cluster Minikube para o trabalho de Alta Disponibilidade (K8s).
 # Configura o driver Docker, CNI Calico, recursos (4 CPUs, 6GB RAM),
-# ativa o metrics-server e compila a imagem local da API se o Dockerfile existir.
+# ativa o metrics-server, compila a imagem local da API se o Dockerfile existir
+# e pré-carrega imagens base no Minikube para execução offline.
 #
 # Uso: ./scripts/setup-cluster.sh
 
@@ -50,6 +51,10 @@ if [[ -f "app/Dockerfile" ]]; then
 else
   echo "Aviso: app/Dockerfile ainda não existe (será adicionado na issue #14). Pulando build da imagem."
 fi
+
+echo "==> 7. Pré-carregando imagens para execução offline..."
+echo "Baixando imagem do PostgreSQL (postgres:16-alpine)..."
+minikube image pull postgres:16-alpine
 
 echo ""
 echo "=========================================================="
