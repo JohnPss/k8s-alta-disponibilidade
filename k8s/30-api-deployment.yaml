@@ -24,7 +24,7 @@ spec:
           command: ["sh", "-c", "until nc -z postgres 5432; do echo aguardando postgres; sleep 2; done"]
       containers:
         - name: api
-          image: api:1.4              # painel da #52 sobre o código da #20 e da #24
+          image: api:1.5              # ajustes de auditoria v1.0 (AUD-01, 05, 06, 08)
           imagePullPolicy: IfNotPresent # imagem local do Minikube, não baixa do Docker Hub
           ports: [{ containerPort: 8080 }]
           envFrom:                    # APP_* e DB_HOST/PORT/NAME do ConfigMap, DB_USER/PASSWORD do Secret
