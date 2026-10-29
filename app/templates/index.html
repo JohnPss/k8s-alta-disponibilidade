@@ -35,8 +35,10 @@
 
     .topbar {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
+      gap: 10px;
       min-height: 42px;
       color: #fff;
       font-size: .76rem;
@@ -59,9 +61,31 @@
       letter-spacing: .06em;
     }
 
+    .status-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
     .connection::before { width: 8px; height: 8px; border-radius: 50%; background: #a7f3c4; content: ""; }
     .connection.is-error { border-color: #f5b2ad; background: #9d2824; color: #fff; }
     .connection.is-error::before { background: #fff; }
+    .db-status.is-ok { border-color: transparent; background: #0e8b61; color: #fff; }
+    .db-status.is-ok::before { background: #fff; }
+    .db-status.is-warn { border-color: transparent; background: #b9770e; color: #fff; }
+    .db-status.is-warn::before { background: #fff; }
+
+    .db-pill {
+      display: inline-flex;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #0e8b61;
+      color: #fff;
+      font-size: .62rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: none;
+      vertical-align: middle;
+    }
+    .db-pill.is-down { background: #b9770e; }
+    .detail dd.is-stale { color: #9aa7a9; }
+    .visits-note { margin: 8px 0 0; color: var(--muted); font-size: .82rem; font-weight: 650; line-height: 1.35; }
 
     .hero {
       display: flex;
@@ -169,12 +193,57 @@
       font-weight: 900;
       letter-spacing: .08em;
     }
+    .pod-version {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #2e86de;
+      color: #fff;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
     .empty-state { margin: 0; padding: 16px 0; color: rgba(255, 255, 255, .82); font-size: .92rem; }
     .responses-section { margin-top: 30px; padding-bottom: 28px; }
     .response-track { display: flex; min-height: 24px; flex-wrap: wrap; gap: 6px; }
     .response-tile { width: 17px; height: 17px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 2px; }
     .response-tile.is-failure { background: repeating-linear-gradient(135deg, #fff 0 3px, #d7263d 3px 6px); }
+    .rollout-section { margin-top: 30px; color: #fff; }
+    .rollout-section h2 { margin: 0 0 15px; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .rollout-panel { padding: 16px 18px 14px; border-radius: 4px; background: rgba(255, 255, 255, .96); box-shadow: 0 8px 22px rgba(10, 31, 35, .13); }
+    .rollout-bar { display: flex; height: 34px; overflow: hidden; border-radius: 4px; background: #e7eef2; }
+    .rollout-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      overflow: hidden;
+      color: #fff;
+      font-size: .86rem;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: flex-grow 600ms ease;
+    }
+    .rollout-seg.is-dark-text { color: #102629; }
+    .rollout-note { margin: 10px 0 0; color: var(--muted); font-size: .92rem; font-weight: 650; }
     @keyframes appear { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    body.is-light { color: var(--ink); background-image: radial-gradient(rgba(16, 38, 41, .16) 1px, transparent 1px); }
+    body.is-light .topbar,
+    body.is-light .hero,
+    body.is-light .dashboard,
+    body.is-light .rollout-section { color: var(--ink); }
+    body.is-light .connection { border-color: rgba(16, 38, 41, .35); background: rgba(255, 255, 255, .45); color: var(--ink); }
+    body.is-light .connection.is-error,
+    body.is-light .db-status.is-ok,
+    body.is-light .db-status.is-warn { border-color: transparent; color: #fff; }
+    body.is-light .connection.is-error { background: #9d2824; }
+    body.is-light .db-status.is-ok { background: #0e8b61; }
+    body.is-light .db-status.is-warn { background: #b9770e; }
+    body.is-light .metric { border-color: rgba(16, 38, 41, .2); background: rgba(255, 255, 255, .82); color: var(--ink); }
+    body.is-light .metric-label,
+    body.is-light .empty-state { color: rgba(16, 38, 41, .72); }
 
     @media (max-width: 760px) {
       body { padding: 18px 18px 28px; }
@@ -186,7 +255,7 @@
       .detail:nth-child(3) { border-left: 0; }
       .detail:nth-child(n+3) { border-top: 1px solid var(--line); }
       .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .dashboard, .pods-section, .responses-section { margin-top: 26px; }
+      .dashboard, .pods-section, .responses-section, .rollout-section { margin-top: 26px; }
     }
 
     @media (max-width: 420px) {
@@ -202,7 +271,10 @@
   <div class="page">
     <header class="topbar">
       <div class="wordmark">Alta disponibilidade</div>
-      <div id="connection" class="connection" role="status" aria-live="polite">Conectando</div>
+      <div class="status-chips">
+        <div id="db-status" class="connection db-status" role="status">Banco</div>
+        <div id="connection" class="connection" role="status" aria-live="polite">Conectando</div>
+      </div>
     </header>
 
     <main>
@@ -218,7 +290,11 @@
         <div class="detail"><dt>Endereço IP</dt><dd id="pod-ip">{{ pod_ip }}</dd></div>
         <div class="detail"><dt>Nó</dt><dd id="node">{{ node }}</dd></div>
         <div class="detail"><dt>Versão</dt><dd id="version">{{ version }}</dd></div>
-        <div class="detail"><dt>Total de visitas</dt><dd id="visits">Aguardando</dd></div>
+        <div class="detail">
+          <dt>Total de visitas <span id="db-pill" class="db-pill" hidden>ok</span></dt>
+          <dd id="visits">Aguardando</dd>
+          <p id="visits-note" class="visits-note" hidden></p>
+        </div>
       </dl>
 
       <section class="dashboard" aria-labelledby="metrics-title">
@@ -238,6 +314,14 @@
         </div>
       </section>
 
+      <section id="rollout-section" class="rollout-section" hidden aria-labelledby="rollout-title">
+        <h2 id="rollout-title">Atualização em andamento</h2>
+        <div class="rollout-panel">
+          <div id="rollout-bar" class="rollout-bar" role="img" aria-label="Proporção das versões"></div>
+          <p id="rollout-note" class="rollout-note"></p>
+        </div>
+      </section>
+
       <section class="responses-section" aria-labelledby="responses-title">
         <h2 id="responses-title">Últimas 40 respostas</h2>
         <div id="response-track" class="response-track" role="list" aria-label="Histórico de respostas"></div>
@@ -253,6 +337,9 @@
       version: document.querySelector("#version"),
       message: document.querySelector("#message"),
       visits: document.querySelector("#visits"),
+      visitsNote: document.querySelector("#visits-note"),
+      dbStatus: document.querySelector("#db-status"),
+      dbPill: document.querySelector("#db-pill"),
       connection: document.querySelector("#connection"),
       error: document.querySelector("#error-notice"),
       requestCount: document.querySelector("#request-count"),
@@ -260,7 +347,10 @@
       averageTime: document.querySelector("#average-time"),
       activeCount: document.querySelector("#active-count"),
       podGrid: document.querySelector("#pod-grid"),
-      responseTrack: document.querySelector("#response-track")
+      responseTrack: document.querySelector("#response-track"),
+      rolloutSection: document.querySelector("#rollout-section"),
+      rolloutBar: document.querySelector("#rollout-bar"),
+      rolloutNote: document.querySelector("#rollout-note")
     };
 
     const pods = new Map();
@@ -269,9 +359,76 @@
     let requestCount = 0;
     let failureCount = 0;
     let podOrder = 0;
+    let lastVisits = null;
 
     function displayValue(value) {
       return value === null || value === undefined || value === "" ? "Indisponível" : String(value);
+    }
+
+    function formatVersion(version) {
+      const text = String(version);
+      if (/^v/i.test(text)) return text;
+      return /^\d/.test(text) ? `v${text}` : text;
+    }
+
+    function parseHex(color) {
+      const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color || "");
+      if (!match) return null;
+      let hex = match[1];
+      if (hex.length === 3) hex = [...hex].map(channel => channel + channel).join("");
+      return [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16) / 255);
+    }
+
+    function isLight(color) {
+      const rgb = parseHex(color);
+      if (!rgb) return false;
+      const [red, green, blue] = rgb.map(channel => (
+        channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+      ));
+      return 0.2126 * red + 0.7152 * green + 0.0722 * blue > 0.4;
+    }
+
+    function applyPageColor(color) {
+      if (typeof color !== "string" || !CSS.supports("color", color)) return;
+      document.body.style.backgroundColor = color;
+      document.body.classList.toggle("is-light", isLight(color));
+    }
+
+    function paintVersionBadge(badge, version, color) {
+      if (!version) {
+        badge.hidden = true;
+        return;
+      }
+      badge.hidden = false;
+      badge.textContent = formatVersion(version);
+      if (typeof color === "string" && CSS.supports("color", color)) {
+        badge.style.backgroundColor = color;
+        badge.style.color = isLight(color) ? "#102629" : "#fff";
+      }
+    }
+
+    function updateDatabase(data) {
+      const dbOk = data.db === "ok" && data.visits !== null && data.visits !== undefined;
+      if (dbOk) lastVisits = data.visits;
+
+      fields.dbPill.hidden = false;
+      fields.dbPill.textContent = dbOk ? "ok" : "fora do ar";
+      fields.dbPill.classList.toggle("is-down", !dbOk);
+      fields.dbStatus.textContent = dbOk ? "Banco ok" : "Banco fora do ar";
+      fields.dbStatus.classList.toggle("is-ok", dbOk);
+      fields.dbStatus.classList.toggle("is-warn", !dbOk);
+
+      if (lastVisits === null) {
+        fields.visits.textContent = "Aguardando";
+        fields.visits.classList.remove("is-stale");
+        fields.visitsNote.hidden = true;
+        return;
+      }
+
+      fields.visits.textContent = String(lastVisits);
+      fields.visits.classList.toggle("is-stale", !dbOk);
+      fields.visitsNote.hidden = dbOk;
+      if (!dbOk) fields.visitsNote.textContent = "último valor salvo · aguardando o banco";
     }
 
     function createPodCard(podName, now) {
@@ -279,6 +436,7 @@
       const badge = document.createElement("span");
       const prefix = document.createElement("span");
       const suffix = document.createElement("strong");
+      const versionBadge = document.createElement("span");
       const separator = podName.lastIndexOf("-");
 
       card.className = "pod-card is-new";
@@ -291,10 +449,12 @@
       prefix.textContent = separator >= 0 ? podName.slice(0, separator + 1) : "POD";
       suffix.className = "pod-suffix";
       suffix.textContent = separator >= 0 ? podName.slice(separator + 1) : podName;
-      card.append(badge, prefix, suffix);
+      versionBadge.className = "pod-version";
+      versionBadge.hidden = true;
+      card.append(badge, prefix, suffix, versionBadge);
       fields.podGrid.querySelector(".empty-state")?.remove();
       fields.podGrid.append(card);
-      return { card, badge, firstSeen: now, lastSeen: now, color: card.style.getPropertyValue("--pod-color") };
+      return { card, badge, versionBadge, firstSeen: now, lastSeen: now, color: card.style.getPropertyValue("--pod-color") };
     }
 
     async function fetchWhoami() {
@@ -360,13 +520,55 @@
       fields.node.textContent = displayValue(data.node);
       fields.version.textContent = displayValue(data.version);
       fields.message.textContent = displayValue(data.message);
-      fields.visits.textContent = data.visits === null ? "Indisponível" : displayValue(data.visits);
+      updateDatabase(data);
+      paintVersionBadge(pod.versionBadge, data.version, data.color);
+      applyPageColor(data.color);
 
-      if (typeof data.color === "string" && CSS.supports("color", data.color)) {
-        document.body.style.backgroundColor = data.color;
+      responseHistory.push({
+        ok: true,
+        pod: data.pod,
+        color: pod.color,
+        version: data.version,
+        versionColor: data.color
+      });
+    }
+
+    function renderRollout() {
+      const versions = new Map();
+      for (const response of responseHistory) {
+        if (!response.ok || response.version === null || response.version === undefined || response.version === "") continue;
+        const current = versions.get(response.version) || { count: 0, color: response.versionColor };
+        current.count += 1;
+        if (response.versionColor) current.color = response.versionColor;
+        versions.set(response.version, current);
       }
 
-      responseHistory.push({ ok: true, pod: data.pod, color: pod.color });
+      if (versions.size < 2) {
+        fields.rolloutSection.hidden = true;
+        fields.rolloutBar.replaceChildren();
+        fields.rolloutNote.textContent = "";
+        return;
+      }
+
+      const total = [...versions.values()].reduce((sum, version) => sum + version.count, 0);
+      const sorted = [...versions.entries()].sort((left, right) => (
+        String(left[0]).localeCompare(String(right[0]), undefined, { numeric: true })
+      ));
+      fields.rolloutSection.hidden = false;
+      fields.rolloutBar.replaceChildren();
+      for (const [version, info] of sorted) {
+        const segment = document.createElement("div");
+        const percent = Math.round(info.count / total * 100);
+        segment.className = "rollout-seg" + (isLight(info.color) ? " is-dark-text" : "");
+        segment.style.flexGrow = String(info.count);
+        if (typeof info.color === "string" && CSS.supports("color", info.color)) segment.style.background = info.color;
+        segment.textContent = `${formatVersion(version)} · ${percent}%`;
+        segment.title = segment.textContent;
+        fields.rolloutBar.append(segment);
+      }
+      const newest = sorted[sorted.length - 1];
+      const newestPercent = Math.round(newest[1].count / total * 100);
+      fields.rolloutNote.textContent = `A ${formatVersion(newest[0])} já responde ${newestPercent}% das últimas ${total} requisições.`;
     }
 
     async function runMonitor() {
@@ -398,6 +600,7 @@
         });
         responseHistory.splice(0, Math.max(0, responseHistory.length - 40));
         renderResponseHistory();
+        renderRollout();
 
         fields.connection.classList.toggle("is-error", successes === 0);
         fields.connection.textContent = successes ? "Ao vivo" : "Sem resposta";
