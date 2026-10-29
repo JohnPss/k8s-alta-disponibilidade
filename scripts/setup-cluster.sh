@@ -15,7 +15,7 @@ MEMORY="${MEMORY:-6144}"
 DRIVER="${DRIVER:-docker}"
 CNI="${CNI:-calico}"
 NS="${NS:-ha-demo}"
-IMAGE="${IMAGE:-api:1.3}" # mesma tag de k8s/30-api-deployment.yaml
+IMAGE="${IMAGE:-api:1.4}" # mesma tag de k8s/30-api-deployment.yaml
 
 echo "==> 1. Verificando pré-requisitos locais..."
 command -v docker >/dev/null 2>&1 || { echo "ERRO: Docker não está instalado."; exit 1; }
