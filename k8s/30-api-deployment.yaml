@@ -35,6 +35,8 @@ spec:
           securityContext:            # imagem roda com USER app (não-root) na porta 8080 (AUD-12)
             allowPrivilegeEscalation: false
             runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
           envFrom:                    # APP_* e DB_HOST/PORT/NAME do ConfigMap, DB_USER/PASSWORD do Secret
             - configMapRef: { name: api-config }
             - secretRef:    { name: db-credentials }
