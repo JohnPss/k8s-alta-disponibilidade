@@ -1,0 +1,24 @@
+# HorizontalPodAutoscaler da API (CONTRATOS §1 e §5): escala o Deployment api
+# de 3 a 10 réplicas quando o uso médio de CPU passa de 50% do request (100m).
+# Fica em extras/ para não desfazer o kubectl scale manual do requisito R6.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+  namespace: ha-demo
+  labels:
+    app: api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
