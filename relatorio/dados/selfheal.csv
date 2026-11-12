@@ -1,0 +1,6 @@
+execucao,segundos_ate_ready,erros_http,total_requisicoes
+1,5.96,0,34
+2,5.84,1,34
+3,8.84,0,40
+4,8.83,0,37
+5,8.38,0,37

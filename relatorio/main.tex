@@ -1,0 +1,102 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{./figuras/}}
+
+\definecolor{codebg}{HTML}{F8FAFC}
+\definecolor{codeframe}{HTML}{CBD5E1}
+\definecolor{codekw}{HTML}{1D4ED8}
+\definecolor{codecmt}{HTML}{64748B}
+\definecolor{codestr}{HTML}{15803D}
+
+\lstdefinestyle{k8sstyle}{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\scriptsize,
+    keywordstyle=\color{codekw}\bfseries,
+    commentstyle=\color{codecmt}\itshape,
+    stringstyle=\color{codestr},
+    breaklines=true,
+    breakatwhitespace=true,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    aboveskip=4pt,
+    belowskip=4pt,
+    xleftmargin=3pt,
+    xrightmargin=3pt,
+    literate=
+      {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+      {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+      {à}{{\`a}}1 {ã}{{\~a}}1 {õ}{{\~o}}1 {â}{{\^a}}1 {ê}{{\^e}}1
+      {ô}{{\^o}}1 {ç}{{\c{c}}}1 {Ç}{{\c{C}}}1 {→}{{$\rightarrow$}}1
+}
+\lstset{style=k8sstyle}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\emergencystretch=1.5em
+
+\begin{document}
+\shorthandoff{"}
+
+\title{Orquestração Avançada e Alta Disponibilidade com Kubernetes: Balanceamento de Carga, Self-Healing, Persistência e Isolamento de Rede}
+
+\author{
+\IEEEauthorblockN{João Pedro S. Siqueira, Hugo, João Vitor, Ahmed Hachem,\\
+Lucas Roseno, Bernardo S. Andrade, Luiz Fernando, Thallys Lamounier}
+\IEEEauthorblockA{\textit{Departamento de Computação (DECOM)} --- \textit{Centro Federal de Educação Tecnológica de Minas Gerais (CEFET-MG)}\\
+Sistemas Operacionais Modernos --- Prof. Michel Pires da Silva --- Belo Horizonte, MG, Brasil\\
+Repositório: \texttt{github.com/JohnPss/k8s-alta-disponibilidade}}
+}
+
+\maketitle
+
+\begin{abstract}
+Este artigo apresenta o projeto, a implementação e a avaliação experimental de uma arquitetura distribuída de alta disponibilidade orquestrada em Kubernetes (Minikube com plugin de rede CNI Calico). O sistema implanta no namespace \texttt{ha-demo} uma API web stateless em Python/Flask servida por Gunicorn (\texttt{api:1.5}) com 3 réplicas ativas em um \texttt{Deployment} exposto por um \texttt{Service} \texttt{NodePort} (\texttt{30080}), integrada a um banco de dados relacional PostgreSQL 16 em \texttt{StatefulSet} (\texttt{postgres-0}) com volume persistente (\texttt{PersistentVolumeClaim} de \texttt{1Gi}). A arquitetura combina sincronização de inicialização via \texttt{initContainer}, injeção desacoplada de variáveis e credenciais por \texttt{ConfigMap} e \texttt{Secret}, isolamento de tráfego L3/L4 por \texttt{NetworkPolicy}, sondas independentes de saúde (\texttt{livenessProbe} e \texttt{readinessProbe} desacopladas do banco para prevenção de falhas em cascata), limitação de recursos no kernel Linux via \texttt{cgroups} e escalonamento horizontal automático (\texttt{HPA}). Experimentos controlados ($n=5$) demonstraram distribuição efetiva de carga entre réplicas, autorrecuperação (\textit{self-healing}) em $7{,}57 \pm 1{,}54\,\text{s}$ com $99{,}45\%$ de disponibilidade HTTP, escalabilidade horizontal de 3 para 10 réplicas em $6{,}82 \pm 0{,}21\,\text{s}$ e retenção de $100\%$ das transações após destruição e recriação do pod de banco de dados.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Kubernetes, Alta Disponibilidade, Self-Healing, Escalabilidade Horizontal, Persistência de Dados, NetworkPolicy, Sistemas Operacionais Modernos.
+\end{IEEEkeywords}
+
+\input{secoes/01-introducao}
+\input{secoes/02-arquitetura}
+\input{secoes/03-tecnologias}
+\input{secoes/04-validacao}
+\input{secoes/05-conclusao}
+\input{secoes/06-repositorio}
+
+\begin{thebibliography}{9}
+\bibitem{k8sdocs}
+Kubernetes Documentation, ``Concepts: Workloads, Services, Load Balancing, Networking, and Storage,'' Cloud Native Computing Foundation (CNCF), 2026. Disponível em: \url{https://kubernetes.io/docs/concepts/}.
+
+\bibitem{minikube}
+Kubernetes SIGs, ``minikube: Local Kubernetes Engine,'' 2026. Disponível em: \url{https://minikube.sigs.k8s.io/docs/}.
+
+\bibitem{calico}
+Tigera, ``Project Calico: Cloud-Native Networking and Network Security,'' 2026. Disponível em: \url{https://docs.tigera.io/calico/latest/about/}.
+
+\bibitem{postgres}
+The PostgreSQL Global Development Group, ``PostgreSQL 16 Documentation,'' 2026. Disponível em: \url{https://www.postgresql.org/docs/16/}.
+
+\bibitem{linuxkernel}
+M. Kerrisk, ``cgroups(7) and namespaces(7) --- Linux Programmer's Manual,'' Linux man-pages project, 2026.
+\end{thebibliography}
+
+\end{document}

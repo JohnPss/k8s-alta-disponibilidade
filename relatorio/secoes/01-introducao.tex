@@ -1,0 +1,10 @@
+\section{Introdução}
+\label{sec:introducao}
+
+Quando uma aplicação roda em um único processo ou servidor, qualquer falha derruba o serviço inteiro: um processo que morre, a memória que acaba ou um pico de acessos deixam o sistema fora do ar até que alguém intervenha. Esse é o clássico ponto único de falha (\textit{Single Point of Failure} --- SPOF). A saída usual é dividir o serviço em vários containers isolados, o que o kernel Linux permite por meio de \textit{namespaces} (isolamento de processos, rede e montagens) e \textit{cgroups} (limite e contabilidade de CPU e memória) \cite{linuxkernel}, e deixar que um orquestrador declarativo cuide deles \cite{k8sdocs}.
+
+Neste trabalho montamos e testamos um ambiente desse tipo em \textbf{Kubernetes}, rodando em um cluster local \textbf{Minikube} com rede \textbf{Calico}. Toda a infraestrutura é descrita em arquivos YAML versionados. Queremos verificar, na prática, cinco comportamentos: balanceamento de carga, recuperação automática de falhas, escala horizontal, persistência de dados fora do pod e isolamento de rede entre serviços.
+
+O sistema tem três partes. A primeira é uma API em Python (Flask/Gunicorn) com 3 réplicas, exposta por um \texttt{Service} \texttt{NodePort}. A segunda é um banco \textbf{PostgreSQL 16} em um \texttt{StatefulSet}, com volume persistente próprio, de modo que os dados sobrevivem à recriação do pod. A terceira reúne o que mantém o conjunto confiável: configuração e credenciais externas à imagem, uma \texttt{NetworkPolicy} que só deixa a API falar com o banco, sondas de saúde e um \texttt{HorizontalPodAutoscaler} que escala de 3 a 10 réplicas conforme a carga.
+
+A Seção~\ref{sec:arquitetura} descreve a arquitetura e a Seção~\ref{sec:tecnologias} detalha cada componente. A Seção~\ref{sec:validacao} apresenta os experimentos e seus resultados, a Seção~\ref{sec:conclusao} traz as conclusões e a Seção~\ref{sec:repositorio} indica onde está o código.

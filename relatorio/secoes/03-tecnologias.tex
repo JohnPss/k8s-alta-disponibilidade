@@ -1,0 +1,50 @@
+\section{Tecnologias Utilizadas}
+\label{sec:tecnologias}
+
+Cada container e serviço de sistema desempenha uma função específica na orquestração, isolamento de recursos, persistência e telemetria, conforme especificado na Tabela~\ref{tab:containers-specs} e detalhado nas subseções seguintes.
+
+\begin{table*}[t]
+\centering
+\caption{Especificação Técnica dos Containers, Cotas de Recursos (\texttt{cgroups}), Sondas e Contexto de Segurança}
+\label{tab:containers-specs}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}p{3.2cm}p{3.5cm}llY@{}}
+\toprule
+\textbf{Container / Papel} & \textbf{Imagem OCI} & \textbf{Requests (CPU / RAM)} & \textbf{Limits (CPU / RAM)} & \textbf{Sondas de Saúde e Contexto de Segurança (\texttt{securityContext})} \\
+\midrule
+\texttt{wait-for-postgres} (\textit{initContainer} da API) & \texttt{busybox:1.36} & \texttt{10m} / \texttt{16Mi} & \texttt{50m} / \texttt{32Mi} & Executa \texttt{nc -z postgres 5432} a cada $2\,\text{s}$ até sucesso; \texttt{allowPrivilegeEscalation: false}. \\
+\addlinespace[2pt]
+\texttt{api} (Container principal do \texttt{Deployment}) & \texttt{api:1.5} (\texttt{python:3.12-slim}) & \texttt{100m} / \texttt{64Mi} & \texttt{250m} / \texttt{128Mi} & Readiness: \texttt{GET /readyz:8080} (\texttt{delay=2s, period=3s}); Liveness: \texttt{GET /healthz:8080} (\texttt{delay=5s, period=5s, failureThreshold=3}); \texttt{runAsNonRoot: true}, \texttt{uid/gid=999}. \\
+\addlinespace[2pt]
+\texttt{postgres} (Container do \texttt{StatefulSet}) & \texttt{postgres:16-alpine} & \texttt{250m} / \texttt{256Mi} & \texttt{250m} / \texttt{512Mi} & Readiness (\texttt{delay=5s, period=5s, timeout=3s, fail=3}) e Liveness (\texttt{delay=15s, period=10s, timeout=3s, fail=5}) via \texttt{pg\_isready -h 127.0.0.1}; volume \texttt{1Gi RWO}. \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Orquestrador, Runtime e Plano de Controle (Minikube, containerd e Calico)}
+\begin{itemize}
+    \item \textbf{Minikube (\texttt{v1.39.0}) e Kubernetes (\texttt{v1.37.0}):} Provisiona localmente o nó \texttt{control-plane}/worker sobre o runtime OCI \textbf{containerd (\texttt{v2.3.4})} \cite{minikube}. Todas as imagens são construídas ou pré-carregadas no cache interno do nó com política \texttt{imagePullPolicy: IfNotPresent}, garantindo operação autônoma mesmo sem conectividade externa.
+    \item \textbf{Control Plane e Agentes do Nó:} O \texttt{kube-controller-manager} executa os laços fechados de reconciliação (\textit{reconciliation loops}) dos controladores \texttt{ReplicaSet} e \texttt{StatefulSet}, contrastando continuamente o estado desejado (\texttt{spec.replicas}) com o estado real observado no \texttt{kube-apiserver}. O \texttt{kube-scheduler} posiciona novos pods avaliando os \texttt{requests} de recursos; o \texttt{kubelet} instrui o \texttt{containerd} na criação de containers, configura as restrições de CPU (\texttt{cpu.max}) e memória (\texttt{memory.max}) nos \texttt{cgroups} do kernel Linux e executa as sondas periódicas; e o \texttt{kube-proxy} mantém o plano de dados L4 via \texttt{iptables} \cite{k8sdocs}.
+    \item \textbf{CNI Calico:} Provê conectividade L3 entre pods e traduz declarações de \texttt{NetworkPolicy} em regras de filtragem diretamente no subsistema \textit{netfilter} do kernel \cite{calico}.
+\end{itemize}
+
+\subsection{Pods da Aplicação Web (\texttt{api:1.5} --- Flask, Gunicorn e \texttt{initContainer})}
+Cada réplica do \texttt{Deployment api} é composta por dois containers que compartilham o mesmo namespace de rede:
+\begin{itemize}
+    \item \textbf{\texttt{initContainer} (\texttt{wait-for-postgres} --- \texttt{busybox:1.36}):} Como a especificação do Kubernetes não adota dependências estáticas de inicialização análogas ao \texttt{depends\_on} do Docker Compose, este container preliminar executa o laço \texttt{until nc -z postgres 5432; do sleep 2; done}, impedindo a inicialização do container principal até que o serviço \texttt{postgres} aceite conexões TCP na porta \texttt{5432}.
+    \item \textbf{Container Principal (\texttt{api} --- \textbf{Python 3.12 + Flask + Gunicorn}):} Construído sobre \texttt{python:3.12-slim} e executado sob privilégio mínimo (\texttt{runAsUser: 999}, \texttt{runAsNonRoot: true}), utiliza o servidor WSGI \textbf{Gunicorn} com 2 processos \textit{workers} e 2 \textit{threads} por \textit{worker} (\texttt{-w 2 -{}-threads 2 -b 0.0.0.0:8080}) e \texttt{keepalive = 0}. A aplicação (\texttt{app/app.py}) disponibiliza seis rotas:
+    \begin{enumerate}
+        \item \texttt{GET /}: serve o painel de telemetria em tempo real (\texttt{index.html}), que realiza \textit{polling} concorrente (5 chamadas por segundo a \texttt{/api/whoami}), exibindo cartões das réplicas ativas, latência média, barra de proporção de versões durante \textit{rolling updates} e estado da camada de persistência;
+        \item \texttt{GET /api/whoami}: abre conexão com o PostgreSQL via \texttt{psycopg} (\texttt{connect\_timeout=2s}), assegura a existência da tabela \texttt{visits}, insere o registro da requisição e retorna JSON com dados da \textit{Downward API} (\texttt{POD\_NAME}, \texttt{POD\_IP}, \texttt{NODE\_NAME}), parâmetros do \texttt{ConfigMap} e contador global de visitas;
+        \item \texttt{GET /healthz} (\texttt{livenessProbe}): responde HTTP \texttt{200} quando saudável ou HTTP \texttt{500} na presença do arquivo sentinela \texttt{/tmp/unhealthy}, acionando o reinício automático do container pelo \texttt{kubelet} após 3 falhas sucessivas ($\approx 15\,\text{s}$);
+        \item \texttt{GET /readyz} (\texttt{readinessProbe}): responde HTTP \texttt{200} quando o servidor WSGI está apto a receber tráfego, \textbf{sem consultar o banco de dados}. Esse desacoplamento impede falhas em cascata: caso o PostgreSQL sofra indisponibilidade temporária, as réplicas da API permanecem registradas nos \texttt{Endpoints} do \texttt{Service} e operam em degradação graciosa (HTTP \texttt{200} com \texttt{db: \textquotedbl{}indisponível\textquotedbl{}} e \texttt{visits: null});
+        \item \texttt{POST /api/crash}: instancia o arquivo \texttt{/tmp/unhealthy} (HTTP \texttt{202}) para injeção controlada de falha interna de aplicação;
+        \item \texttt{GET /api/cpu?ms=200}: executa iterações contínuas de hash SHA-256 por $200\,\text{ms}$, gerando carga sintética de CPU para avaliação de autoescalonamento.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Pod de Banco de Dados (\texttt{postgres-0} --- \texttt{postgres:16-alpine})}
+Controlado pelo \texttt{StatefulSet postgres}, executa o SGBD \textbf{PostgreSQL 16} \cite{postgres} sobre Alpine Linux. As credenciais são injetadas a partir do \texttt{Secret db-credentials} (\texttt{valueFrom.secretKeyRef}) e o nome do banco (\texttt{appdb}) provém do \texttt{ConfigMap api-config}. A prontidão e a vivacidade do processo são monitoradas nativamente por \texttt{pg\_isready -U \textquotedbl{}\$POSTGRES\_USER\textquotedbl{} -d \textquotedbl{}\$POSTGRES\_DB\textquotedbl{} -h 127.0.0.1}. Na API, optou-se por conexões diretas por requisição em vez de \textit{pools} persistentes compartilhados entre \textit{workers}, eliminando conexões órfãs pós-\texttt{fork} e garantindo recuperação instantânea após reinicializações do pod \texttt{postgres-0}.
+
+\subsection{Telemetria e Autoescalonamento (\texttt{metrics-server} e \texttt{HPA})}
+O componente \textbf{\texttt{metrics-server} (\texttt{v0.9.0})} agrega indicadores de CPU e memória coletados pelo \texttt{cAdvisor} (integrado ao \texttt{kubelet}) a partir dos pseudofiles de \texttt{cgroups} do kernel. O controlador \textbf{\texttt{HorizontalPodAutoscaler}} (\texttt{extras/50-hpa.yaml}) consulta a API \texttt{metrics.k8s.io} a cada $15\,\text{s}$ e aplica a relação $\text{Réplicas} = \lceil \text{Atuais} \times (\text{Uso}_{\text{CPU}} / 50\%) \rceil$, escalando o \texttt{Deployment api} de 3 até 10 pods quando o consumo médio ultrapassa $50\,\text{mCPU}$ (\texttt{50\%} do \texttt{request} de \texttt{100m}). O manifesto é isolado no diretório \texttt{extras/} para permitir a avaliação independente tanto da elasticidade imperativa (\texttt{kubectl scale -{}-replicas=10}) quanto da elasticidade reativa orientada a métricas.
