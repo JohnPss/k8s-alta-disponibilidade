@@ -1,0 +1,12 @@
+\section{Conclusão}
+\label{sec:conclusao}
+
+Os testes mostram que os controladores do Kubernetes (\texttt{Deployment}, \texttt{StatefulSet}, \texttt{HPA}) e a \texttt{NetworkPolicy}, apoiados nos \textit{namespaces} e \textit{cgroups} do Linux, entregam o que se espera de um serviço de alta disponibilidade, mesmo em uma máquina só. Em cinco rodadas, a API voltou ao estado 3/3 \textit{Ready} em $7{,}57 \pm 1{,}54\,\text{s}$ após a remoção de um pod, com $99{,}45\%$ das requisições atendidas durante a recuperação. A escala de 3 para 10 réplicas levou $6{,}82 \pm 0{,}21\,\text{s}$ e suportou 3000 requisições concorrentes sem erro. O banco perdeu zero registros quando o pod \texttt{postgres-0} foi destruído e recriado sobre o mesmo volume.
+
+Duas decisões de projeto pesaram nesses resultados:
+\begin{enumerate}
+    \item \textbf{Prontidão da API independente do banco.} A \texttt{readinessProbe} (\texttt{/readyz}) não consulta o PostgreSQL. Assim, quando o banco reinicia, os pods da API continuam no \texttt{Service} e respondem HTTP \texttt{200} informando que o banco está indisponível, em vez de sumirem todos de uma vez.
+    \item \textbf{Conexões sem \textit{keep-alive}.} Com \texttt{Connection: close}, cada requisição abre uma conexão nova e o \texttt{kube-proxy} a distribui entre as réplicas. O custo é um \textit{handshake} TCP a mais por chamada.
+\end{enumerate}
+
+O principal limite do experimento é o nó único. O host continua sendo um ponto único de falha, o volume usa \texttt{hostPath} e há uma única instância do banco, o que causou cerca de $7\,\text{s}$ sem escrita durante o reinício. Em um cluster de produção seria preciso armazenamento replicado, um banco com réplica e \textit{failover} automático (por exemplo, CloudNativePG), um \texttt{Ingress} com TLS e uma solução externa para segredos.

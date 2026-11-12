@@ -1,0 +1,21 @@
+\section{Disponibilidade de Código e Reprodutibilidade}
+\label{sec:repositorio}
+
+Todo o código-fonte da aplicação, manifestos declarativos, scripts de automação, logs de execução, séries temporais em CSV e código LaTeX deste artigo encontram-se publicamente disponíveis no repositório \textbf{\url{https://github.com/JohnPss/k8s-alta-disponibilidade}}.
+
+O repositório está estruturado nos diretórios: (i) \texttt{app/} (aplicação Flask/Gunicorn, \texttt{Dockerfile} e painel web em \texttt{templates/index.html}); (ii) \texttt{k8s/} (manifestos numerados de \texttt{00-namespace.yaml} a \texttt{40-networkpolicy.yaml}); (iii) \texttt{extras/} (manifesto opcional \texttt{50-hpa.yaml}); (iv) \texttt{scripts/} (automação do cluster e dos ensaios experimentais); (v) \texttt{docs/} (contratos arquiteturais e diagramas); e (vi) \texttt{relatorio/} (código-fonte IEEEtran, figuras, dados CSV e logs). A reprodução integral da infraestrutura e dos experimentos a partir de um ambiente limpo é realizada pelos comandos:
+
+\begin{lstlisting}
+# 1. Provisionar Minikube (Calico + metrics-server):
+./scripts/setup-cluster.sh && ./scripts/deploy.sh
+# 2. Sondagem de trafego e benchmark self-healing (n=5):
+INTERVAL=0.2 ./scripts/traffic.sh   # Ctrl+C para parar
+./scripts/measure-selfheal.sh 5
+# 3. Escalonamento imperativo (3->10) e reativo via HPA:
+kubectl scale deployment api -n ha-demo --replicas=10
+kubectl rollout status deployment/api -n ha-demo
+kubectl apply -f extras/50-hpa.yaml
+./scripts/load-hpa.sh
+# 4. Remover namespace ha-demo ao finalizar:
+./scripts/reset.sh -y
+\end{lstlisting}

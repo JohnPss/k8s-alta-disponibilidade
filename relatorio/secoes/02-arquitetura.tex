@@ -1,0 +1,56 @@
+\section{Mapeamento da Solução e Arquitetura}
+\label{sec:arquitetura}
+
+A infraestrutura de software é isolada no namespace \texttt{ha-demo} sobre um cluster Minikube (\texttt{4 vCPUs}, \texttt{6144\,MB} de RAM, driver Docker) com CNI \textbf{Calico}. A Figura~\ref{fig:arquitetura} ilustra a topologia completa dos containers, serviços de rede, fronteira de segurança (\texttt{NetworkPolicy}), volume persistente e malha de controle.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.86\textwidth]{arquitetura.pdf}
+    \caption{Arquitetura do sistema distribuído no namespace \texttt{ha-demo}, detalhando os pods da API e do PostgreSQL, serviços de rede (\texttt{NodePort} e \texttt{Headless}), fronteira da \texttt{NetworkPolicy} Calico, volume persistente (\texttt{PVC data-postgres-0}) e plano de configuração e autoescalonamento.}
+    \label{fig:arquitetura}
+\end{figure*}
+
+\begin{table*}[t]
+\centering
+\caption{Mapeamento dos Objetos Kubernetes e Manifestos Declarativos da Infraestrutura}
+\label{tab:objetos-k8s}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}llp{3.4cm}Y@{}}
+\toprule
+\textbf{Manifesto} & \textbf{Kind} & \textbf{Nome (\texttt{metadata.name})} & \textbf{Configuração Técnica e Papel na Arquitetura} \\
+\midrule
+\texttt{00-namespace.yaml} & \texttt{Namespace} & \texttt{ha-demo} & Isolamento lógico de escopo para todos os recursos da aplicação e remoção atômica. \\
+\texttt{10-configmap.yaml} & \texttt{ConfigMap} & \texttt{api-config} & Parâmetros de ambiente: \texttt{DB\_HOST=postgres}, \texttt{DB\_PORT=5432}, \texttt{DB\_NAME=appdb}, \texttt{APP\_VERSION=1.0}, \texttt{APP\_MESSAGE} e \texttt{APP\_COLOR=\#2e86de}. \\
+\texttt{11-secret.yaml} & \texttt{Secret} & \texttt{db-credentials} & Credenciais (\texttt{Opaque}): \texttt{DB\_USER=app} e \texttt{DB\_PASSWORD}, injetadas na API e no PostgreSQL. \\
+\texttt{20-postgres-service.yaml} & \texttt{Service} & \texttt{postgres} & Serviço \textit{headless} (\texttt{clusterIP: None}, TCP \texttt{5432}) com resolução DNS direta para \texttt{postgres-0}. \\
+\texttt{21-postgres-statefulset.yaml} & \texttt{StatefulSet} & \texttt{postgres} & Pod \texttt{postgres-0} (\texttt{postgres:16-alpine}), probes \texttt{pg\_isready}, recursos (\texttt{250m} CPU, \texttt{256Mi/512Mi} RAM) e template de volume persistente (\texttt{data-postgres-0}, \texttt{1Gi RWO}). \\
+\texttt{30-api-deployment.yaml} & \texttt{Deployment} & \texttt{api} & Gerencia \texttt{replicas: 3} (\texttt{api:1.5}), \texttt{RollingUpdate} (\texttt{maxSurge: 1}, \texttt{maxUnavailable: 0}), \texttt{initContainer} (\texttt{wait-for-postgres}), \textit{Downward API}, probes HTTP e \texttt{runAsUser: 999}. \\
+\texttt{31-api-service.yaml} & \texttt{Service} & \texttt{api} & Tipo \texttt{NodePort} (\texttt{port: 80} $\rightarrow$ \texttt{targetPort: 8080}, \texttt{nodePort: 30080}); balanceamento interno L4. \\
+\texttt{40-networkpolicy.yaml} & \texttt{NetworkPolicy} & \texttt{postgres-allow-api} & Restringe conexões de entrada (\textit{Ingress} TCP \texttt{5432}) no banco exclusivamente a pods com label \texttt{app: api}. \\
+\texttt{extras/50-hpa.yaml} & \texttt{HPA} (\texttt{v2}) & \texttt{api} & Escala automaticamente o \texttt{Deployment/api} entre 3 e 10 réplicas com meta de utilização média de CPU de \texttt{50\%}. \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+A Tabela~\ref{tab:objetos-k8s} relaciona os objetos declarativos que compõem o sistema, organizados em três subsistemas principais:
+
+\subsection{Mapeamento de Redes, Descoberta de Serviço e Segurança}
+A comunicação entre componentes utiliza abstrações de serviço e filtragem de pacotes no kernel:
+\begin{itemize}
+    \item \textbf{Exposição Externa e Balanceamento (\texttt{Service api}):} Exposto via \texttt{NodePort} na porta estática \texttt{30080}, elimina a dependência de processos intermediários de tunelamento. O daemon \texttt{kube-proxy} observa o objeto \texttt{Endpoints} e instala regras \texttt{iptables} (módulo probabilístico \texttt{statistic}) que executam \textit{Destination NAT} (DNAT) do tráfego recebido em \texttt{:30080} para a porta \texttt{8080} exclusivamente das réplicas com condição \texttt{Ready=True}. Como o \texttt{kube-proxy} opera na camada de transporte (por conexão TCP), a API Flask e o Gunicorn (\texttt{keepalive = 0}) emitem explicitamente o cabeçalho \texttt{Connection: close}, impedindo que o reuso de sockets HTTP/1.1 (\textit{keep-alive}) concentre requisições sucessivas de um mesmo cliente em um único pod.
+    \item \textbf{Descoberta Interna (\texttt{Service postgres}):} O banco de dados permanece inacessível fora do cluster. Seu \texttt{Service} utiliza \texttt{clusterIP: None} (\textit{headless}), fazendo com que o CoreDNS resolva o nome \texttt{postgres.ha-demo.svc.cluster.local} diretamente para o endereço IP do pod \texttt{postgres-0} na porta \texttt{5432}.
+    \item \textbf{Isolamento por \texttt{NetworkPolicy} (CNI Calico):} Para superar o modelo padrão de rede plana do Kubernetes (\textit{default allow}) e a ausência de suporte a políticas na CNI básica do Minikube, o cluster opera sob a CNI \textbf{Calico} \cite{calico}. A política \texttt{postgres-allow-api} seleciona o pod \texttt{app: postgres} e descarta no \textit{netfilter} do kernel Linux (\texttt{DROP}) qualquer pacote TCP destinado à porta \texttt{5432} cuja origem não pertença a um pod com label \texttt{app: api}.
+\end{itemize}
+
+\subsection{Mapeamento de Armazenamento e Persistência (\texttt{Volumes})}
+Serviços gerenciadores de banco de dados exigem identidade estável e armazenamento desacoplado do ciclo de vida do processo. O PostgreSQL é gerenciado por um \texttt{StatefulSet} com a cláusula \texttt{volumeClaimTemplates}, que provisiona dinamicamente o \texttt{PersistentVolumeClaim} \texttt{data-postgres-0} (\texttt{1Gi}, modo \texttt{ReadWriteOnce}) associado à \texttt{StorageClass standard} (\texttt{k8s.io/minikube-hostpath}). O volume é montado em \texttt{/var/lib/postgresql/data} com diretório de catálogo \texttt{PGDATA=/var/lib/postgresql/data/pgdata}. Caso o pod \texttt{postgres-0} falhe ou seja removido, o PVC permanece íntegro no nó hospedeiro e é reanexado deterministicamente ao novo pod \texttt{postgres-0}, garantindo persistência transacional.
+
+\subsection{Fluxo de Dados entre Componentes}
+O processamento de uma requisição atravessa cinco etapas sequenciais:
+\begin{enumerate}
+    \item O cliente envia uma requisição HTTP \texttt{GET /api/whoami} para \texttt{http://<IP-do-nó>:30080};
+    \item O \texttt{kube-proxy} intercepta o pacote via \texttt{iptables} e realiza DNAT para o IP virtual de uma das réplicas prontas do \texttt{Deployment api};
+    \item A réplica selecionada estabelece conexão TCP na porta \texttt{5432} do host interno \texttt{postgres} (com \texttt{connect\_timeout=2s}), validada pela regra de \textit{Ingress} da \texttt{NetworkPolicy};
+    \item O pod \texttt{postgres-0} registra a visita (\texttt{INSERT INTO visits}) e consulta o total acumulado (\texttt{SELECT count(*)}) sobre o volume \texttt{data-postgres-0};
+    \item A API responde HTTP \texttt{200} com \texttt{Connection: close} e payload JSON contendo \texttt{pod}, \texttt{pod\_ip}, \texttt{node} (via \textit{Downward API}), \texttt{version}, \texttt{message}, \texttt{color} (via \texttt{ConfigMap}), \texttt{visits} e estado \texttt{db} (\texttt{\textquotedbl{}ok\textquotedbl{}} ou \texttt{\textquotedbl{}indisponível\textquotedbl{}} durante eventual indisponibilidade do banco).
+\end{enumerate}
