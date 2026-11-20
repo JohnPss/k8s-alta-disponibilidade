@@ -1,108 +1,132 @@
-\section{Execução e Validação Experimental}
-\label{sec:validacao}
+\FloatBarrier\section{Execução e Validação Experimental}
+\FloatBarrier\subsection{Ambiente e critérios de leitura}
+A equipe registrou um cluster Minikube 1.39.0 com Kubernetes 1.37.0, driver Docker, runtime containerd e rede Calico. O cadastro inicial informa quatro CPUs e 6144 MB de memória; o resumo também identifica o perfil de testes com 4096 MB. Os registros pertencem a momentos distintos. Os eventos de reposição citam a imagem api:1.3 e a preparação do ensaio offline geral registra api:1.4. O manifesto do Deployment da versão documentada utiliza a imagem api:1.5. A versão exibida pelo painel é um parâmetro de configuração e não identifica, por si, a imagem executada.
 
-Os experimentos foram conduzidos em uma estação host Linux Ubuntu 24.04.4 LTS (kernel \texttt{6.14.0-33-generic}, \texttt{x86\_64}) executando o cluster Minikube \texttt{v1.39.0} (Kubernetes \texttt{v1.37.0}, runtime \texttt{containerd 2.3.4} e plugin CNI Calico). Os ensaios de autorrecuperação, escala e persistência foram repetidos em $n = 5$ rodadas. Os resultados estão na Tabela~\ref{tab:resultados-experimentais}.
-
-\begin{table*}[t]
-\centering
-\caption{Resultados Quantitativos dos Ensaios de Autorrecuperação, Escalabilidade Horizontal e Persistência Transacional ($n = 5$)}
-\label{tab:resultados-experimentais}
-\scriptsize
-\setlength{\tabcolsep}{1.8pt}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}c cccc c cccc@{}}
-\toprule
- & \multicolumn{4}{c}{\textbf{1. Autorrecuperação de Pod (\texttt{selfheal.csv})}} & \multicolumn{1}{c}{\textbf{2. Escala (\texttt{scale.csv})}} & \multicolumn{4}{c}{\textbf{3. Persistência no PostgreSQL (\texttt{persistencia.csv})}} \\
-\cmidrule(lr){2-5} \cmidrule(lr){6-6} \cmidrule(l){7-10}
-\textbf{Rodada} & \textbf{\texttt{3/3 Ready} (s)} & \textbf{Erros} & \textbf{Reqs.} & \textbf{Sucesso (\%)} & \textbf{\texttt{3$\rightarrow$10 Ready} (s)} & \textbf{Antes} & \textbf{Depois} & \textbf{$\Delta$} & \textbf{Retenção} \\
-\midrule
-1 & 5,96 & 0 & 34 & 100,00\% & 7,16 & 314 & 315 & $+1$ & 100\% (0 perda) \\
-2 & 5,84 & 1 & 34 & 97,06\%  & 6,58 & 260 & 261 & $+1$ & 100\% (0 perda) \\
-3 & 8,84 & 0 & 40 & 100,00\% & 6,82 & 282 & 283 & $+1$ & 100\% (0 perda) \\
-4 & 8,83 & 0 & 37 & 100,00\% & 6,80 & 502 & 503 & $+1$ & 100\% (0 perda) \\
-5 & 8,38 & 0 & 37 & 100,00\% & 6,75 & 524 & 525 & $+1$ & 100\% (0 perda) \\
-\midrule
-\textbf{Média $\pm$ DP} & $\mathbf{7{,}57 \pm 1{,}54\,\textbf{s}}$ & $\mathbf{0{,}20 \pm 0{,}45}$ & $\mathbf{36{,}40 \pm 2{,}51}$ & $\mathbf{99{,}45\%\ (181/182)}$ & $\mathbf{6{,}82 \pm 0{,}21\,\textbf{s}}$ & --- & --- & $\mathbf{+1{,}00 \pm 0{,}00}$ & $\mathbf{100\%\ (5/5)}$ \\
-\bottomrule
-\end{tabular*}
-\end{table*}
-
-\subsection{Balanceamento de Carga e Exposição via NodePort}
-A validação do plano de dados em regime nominal iniciou-se com a inspeção das 3 réplicas do \texttt{Deployment api} (\texttt{api-58cf7fff8c-8kbgh}, \texttt{b5mqd} e \texttt{qtbx5}), alocadas na sub-rede \texttt{10.244.120.70}--\texttt{72} e vinculadas ao objeto \texttt{Endpoints} do serviço \texttt{api} (\texttt{NodePort 10.99.68.112}, mapeamento \texttt{80:30080/TCP}). Em razão do encerramento explícito de conexões TCP a cada resposta (\texttt{Connection: close} e \texttt{keepalive = 0}), uma sequência de 20 requisições consecutivas a \texttt{/api/whoami} (\texttt{relatorio/logs/17-r4.txt}) demonstrou alternância efetiva entre os três backends pelas regras \texttt{iptables} do \texttt{kube-proxy}, enquanto o contador transacional \texttt{visits} progrediu monotonamente de \texttt{21} a \texttt{40}:
-
-\begin{lstlisting}
-NAME  TYPE      CLUSTER-IP    PORT(S)       AGE
-api   NodePort  10.99.68.112  80:30080/TCP  85s
-NAME  ENDPOINTS
-api   10.244.120.70:8080,10.244.120.71:8080,
-      10.244.120.72:8080
-# Sequencia de respostas (pod / db / visits):
-api-58cf7fff8c-b5mqd   ok   23
-api-58cf7fff8c-8kbgh   ok   24
-api-58cf7fff8c-b5mqd   ok   25
-api-58cf7fff8c-8kbgh   ok   28
-api-58cf7fff8c-qtbx5   ok   31
-api-58cf7fff8c-qtbx5   ok   39
+\paragraph{Verificação inicial do cluster.} O cadastro do ambiente identifica o nó minikube em condição Ready (control-plane). Os trechos abaixo, extraídos da inspeção do Deployment e do Service, documentam três réplicas prontas e disponíveis e a publicação pela porta 30080 do nó.
+\par\noindent\begin{minipage}{\linewidth}\begin{lstlisting}
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+api    3/3     3            3           85s
+NAME   TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+api    NodePort   10.99.68.112   <none>        80:30080/TCP   85s
 \end{lstlisting}
+\end{minipage}\par
+O registro de ambiente e a inspeção acima preservam os estados, sem transcrever os comandos de coleta. Em uma verificação posterior no perfil ha-teste, a equipe registrou o comando \texttt{kubectl get pods -n ha-demo -o wide}: as três réplicas da API e postgres-0 apareciam individualmente em Running, com prontidão 1/1.
 
-A Figura~\ref{fig:r4-pagina} apresenta a interface web de monitoramento servida pela aplicação durante o teste, evidenciando a detecção simultânea das três réplicas (\texttt{8kbgh}, \texttt{b5mqd} e \texttt{qtbx5}), latência média de $16\,\text{ms}$, ausência de falhas HTTP e distribuição equilibrada na barra histórica das últimas 40 respostas.
+O estudo usa três tipos de medida. O número de pods prontos descreve a condição vista pelo orquestrador. As respostas HTTP descrevem o que um cliente obteve durante a sondagem. O contador e o campo de estado do banco informam se a operação alcançou a camada de dados. Nos ensaios a seguir, cada conclusão se apoia na medida correspondente. Os experimentos apresentados a seguir utilizam os registros de execução e as evidências produzidas pela equipe, permitindo relacionar os resultados observados às condições em que os testes foram realizados.
+\FloatBarrier\subsection{Acesso externo e distribuição do atendimento}
+Com três réplicas prontas, foram observados os destinos do Service e os identificadores retornados ao consultar a aplicação pela porta publicada. O Service tinha três endpoints na porta 8080. Em vinte consultas consecutivas, os sufixos b5mqd, 8kbgh e qtbx5 apareceram respectivamente catorze, quatro e duas vezes. Ao longo dessa sequência, o banco foi indicado como disponível e a contagem avançou de 21 a 40.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.84\columnwidth]{figuras/17-r4-pagina.png}
-\caption{Painel de telemetria em operação nominal com 3 réplicas ativas (\texttt{8kbgh}, \texttt{b5mqd} e \texttt{qtbx5}), latência média de $16\,\text{ms}$ e balanceamento de carga L4 entre os pods.}
-\label{fig:r4-pagina}
-\end{figure}
 
-\subsection{Autorrecuperação (\textit{Self-Healing}) de Pods e de Processo}
-A resiliência da camada de aplicação foi avaliada sob duas modalidades de injeção de falhas:
-\begin{enumerate}
-    \item \textbf{Remoção abrupta de pod (\texttt{kubectl delete pod}):} A exclusão da réplica \texttt{api-58cf7fff8c-8kbgh} (\texttt{UID 3464f481-...}) sensibilizou imediatamente o laço de reconciliação do controlador \texttt{ReplicaSet} no \texttt{kube-controller-manager}. Ao detectar a divergência entre \texttt{spec.replicas: 3} e apenas 2 réplicas ativas, o controlador emitiu o evento \texttt{SuccessfulCreate} para o pod substituto \texttt{api-58cf7fff8c-wbgrv} (\texttt{IP 10.244.120.77}) no mesmo segundo em que o pod original entrou em estado \texttt{Killing}/\texttt{Terminating}, restabelecendo a condição \texttt{3/3 Ready} em $5897\,\text{ms}$. A Figura~\ref{fig:r5-transicao} ilustra, via \texttt{kubectl get pods -n ha-demo -w}, a transição completa de estados no kernel e no runtime (\texttt{Terminating} $\rightarrow$ \texttt{Pending} $\rightarrow$ \texttt{Init:0/1} $\rightarrow$ \texttt{PodInitializing} $\rightarrow$ \texttt{Running 1/1} em $5\,\text{s}$ na réplica substituta \texttt{9xwwk}). Nas $n = 5$ execuções automatizadas com sondagem HTTP a cada $100\,\text{ms}$ (Tabela~\ref{tab:resultados-experimentais}), o tempo médio de convergência até \texttt{3/3 Ready} foi de $7{,}57 \pm 1{,}54\,\text{s}$, com taxa global de disponibilidade HTTP de $99{,}45\%$ ($181/182$ requisições bem-sucedidas, registrando-se um único erro transitório na Rodada 2 durante a janela sub-segundo de atualização das regras \texttt{iptables}).
-    \item \textbf{Travamento lógico de processo (\texttt{POST /api/crash}):} A criação do arquivo sentinela \texttt{/tmp/unhealthy} faz com que a rota \texttt{GET /healthz} passe a retornar HTTP \texttt{500}. Após \texttt{failureThreshold: 3} verificações consecutivas da \texttt{livenessProbe} (\texttt{periodSeconds: 5}, totalizando $\approx 15\,\text{s}$), o agente \texttt{kubelet} reinicia o container \texttt{api} in-loco, incrementando o contador \texttt{RESTARTS} sem alterar o \texttt{POD\_NAME} ou o \texttt{POD\_IP} e limpando o sistema de arquivos efêmero do container.
-\end{enumerate}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.84\columnwidth]{figuras/17-r5-transicao.png}
-\caption{Captura em tempo real (\texttt{kubectl get pods -n ha-demo -w}) do ciclo de autorrecuperação: transição \texttt{Terminating} $\rightarrow$ \texttt{Pending} $\rightarrow$ \texttt{Init:0/1} $\rightarrow$ \texttt{PodInitializing} $\rightarrow$ \texttt{Running 1/1} em $5\,\text{s}$.}
-\label{fig:r5-transicao}
-\end{figure}
-
-\subsection{Elasticidade Horizontal Imperativa ($3 \rightarrow 10$ Réplicas) e Reativa (\texttt{HPA})}
-\begin{itemize}
-    \item \textbf{Escalonamento Imperativo e Teste de Estresse Concorrente:} O disparo de \texttt{kubectl scale deployment api -n ha-demo -{}-replicas=10} instanciou 7 novas réplicas (\texttt{96rnn}, \texttt{9d74k}, \texttt{cggt4}, \texttt{j9hk2}, \texttt{k2fcw}, \texttt{kxzrl} e \texttt{qwrrm}, IPs \texttt{10.244.120.78}--\texttt{84}), atingindo \texttt{10/10 Ready} em $6{,}82 \pm 0{,}21\,\text{s}$ na média das 5 execuções (Tabela~\ref{tab:resultados-experimentais}). O baixo desvio-padrão decorre da retenção local das imagens OCI no \texttt{containerd} e da prontidão imediata do serviço \texttt{postgres} no \texttt{initContainer}. A Figura~\ref{fig:r6-dez-pods} exibe o painel web com os 10 pods respondendo simultaneamente e latência média reduzida para $13\,\text{ms}$. Submetido a uma bateria de estresse de $3000$ requisições concorrentes (20 clientes paralelos via \texttt{xargs -P 20}), o conjunto de 10 réplicas (40 \textit{threads} Gunicorn) processou $100\%$ das chamadas ($3000/3000$) com \texttt{\textquotedbl{}db\textquotedbl{}:\textquotedbl{}ok\textquotedbl{}}, enquanto o pod \texttt{postgres-0} operou em $172\,\text{mCPU}$ e $39\,\text{MiB}$ de RAM, abaixo dos seus limites de \texttt{cgroups} (\texttt{250m}/\texttt{512Mi}).
-    \item \textbf{Autoescalonamento Reativo via \texttt{HPA}:} Em repouso, \texttt{kubectl top pods} indicou consumo de $2\,\text{mCPU}$ e $76\,\text{MiB}$ por réplica da API (\texttt{TARGETS: cpu: 2\%/50\%}). Com a ativação do gerador de carga \texttt{scripts/load-hpa.sh} (6 fluxos concorrentes em \texttt{/api/cpu?ms=200}), a utilização média subiu a $230\%$ do \texttt{request} ($113\text{--}143\,\text{mCPU}$ por pod), levando o \texttt{HPA} a expandir o \texttt{Deployment} progressivamente de $3 \rightarrow 6 \rightarrow 10$ réplicas em $30\,\text{s}$, diluindo a carga média para $133\%$ (\texttt{4m45s}):
-\end{itemize}
-
-\begin{lstlisting}
-$ kubectl get hpa -n ha-demo -w
-NAME REFERENCE      TARGETS       MIN MAX REPLICAS AGE
-api  Deployment/api cpu: 2%/50%   3   10  3        80s
-api  Deployment/api cpu: 230%/50% 3   10  3        2m45s
-api  Deployment/api cpu: 230%/50% 3   10  6        3m
-api  Deployment/api cpu: 230%/50% 3   10  10       3m15s
-api  Deployment/api cpu: 133%/50% 3   10  10       4m45s
-# Apos encerrar carga (estabilizacao de 300s):
-api  Deployment/api cpu: 2%/50%   3   10  10       31m
-api  Deployment/api cpu: 2%/50%   3   10  3        35m
+\par\noindent\begin{minipage}{\linewidth}\begin{lstlisting}
+NAME   ENDPOINTS                                                  AGE
+api    10.244.120.70:8080,10.244.120.71:8080,10.244.120.72:8080   86s
 \end{lstlisting}
+\end{minipage}\par
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.84\columnwidth]{figuras/17-r6-dez-pods.png}
-\caption{Painel web após escalonamento horizontal para 10 réplicas ativas no namespace \texttt{ha-demo}, operando com zero falhas e latência média de $13\,\text{ms}$.}
-\label{fig:r6-dez-pods}
-\end{figure}
+A distribuição desigual é informativa: uma amostra curta pode apresentar várias respostas consecutivas da mesma réplica. A evidência de balanceamento consiste em alcançar três destinos usando o mesmo endereço de entrada. A contagem sequencial mostra ainda que a identidade do servidor HTTP pôde mudar enquanto o estado observado pelo cliente continuou compartilhado. A Figura~\ref{fig:painel} documenta a observação complementar no navegador, em uma janela própria de trinta requisições.
+\begin{figure}[H]\centering\includegraphics[width=.79\linewidth]{figuras/17-r4-pagina.png}
+\caption{O painel distingue o pod que respondeu por último dos três identificadores encontrados na janela de observação. Os indicadores de falhas e de latência pertencem a esse cliente.}\label{fig:painel}\end{figure}
+\FloatBarrier\subsection{Reposição de uma réplica e continuidade HTTP}
+{\interlinepenalty=10000 A remoção de um pod permite separar o tempo de restabelecimento da capacidade declarada da interrupção percebida por um cliente. Em uma execução registrada individualmente, o grupo partiu de três réplicas prontas e solicitou a exclusão de uma delas. Durante a transição, duas continuaram prontas, enquanto o novo pod passou pela inicialização e chegou a Running antes de se tornar Ready. A medição terminou quando havia novamente três réplicas prontas e a identidade excluída já não contribuía para a contagem. Essa execução demorou 5,897 s; ela é apresentada separadamente da série consolidada de cinco rodadas.\par}
 
-\subsection{Persistência Transacional, Degradação Graciosa, Isolamento de Rede e Operação Offline}
-\begin{itemize}
-    \item \textbf{Persistência em \texttt{StatefulSet}/\texttt{PVC} e Degradação Graciosa:} Na Rodada 1 da Tabela~\ref{tab:resultados-experimentais}, após acumular \texttt{visits: 314}, o pod \texttt{postgres-0} foi removido (\texttt{kubectl delete pod postgres-0 -n ha-demo}). Durante os $7\,\text{s}$ de recriação do container pelo \texttt{StatefulSet}, chamadas a \texttt{/api/whoami} retornaram \texttt{HTTP/1.1 200 OK} com payload degradado (\texttt{\textquotedbl{}visits\textquotedbl{}:null, \textquotedbl{}db\textquotedbl{}:\textquotedbl{}indisponível\textquotedbl{}}). Graças ao desacoplamento da sonda \texttt{GET /readyz}, as 3 réplicas da API permaneceram ativas no \texttt{Service}, e o painel web (Figura~\ref{fig:painel-banco-fora}) exibiu o alerta \textquotedbl{}BANCO FORA DO AR\textquotedbl{} preservando em tela a última contagem válida sem erros HTTP. Concluída a prontidão do novo \texttt{postgres-0}, o volume \texttt{data-postgres-0} manteve exatamente o mesmo identificador (\texttt{UID 873f564d-32f8-4e88-8472-cb408247b7b9}) e a requisição seguinte registrou \texttt{visits: 315} (\texttt{\textquotedbl{}db\textquotedbl{}:\textquotedbl{}ok\textquotedbl{}}), comprovando retenção integral do estado em todas as 5 execuções ($\Delta = +1$).
-    \item \textbf{Isolamento de Rede via Calico \texttt{NetworkPolicy}:} Com a política \texttt{postgres-allow-api} ativa, um pod efêmero sem o rótulo autorizado (\texttt{kubectl run intruso -{}-image=busybox:1.36}) teve pacotes SYN descartados pelo \textit{netfilter} ao testar a porta \texttt{5432} (\texttt{nc: postgres (10.244.54.229:5432): Connection timed out}, código de saída \texttt{1}), enquanto um pod rotulado com \texttt{app=api} (\texttt{amigo}) estabeleceu conexão TCP imediata (\texttt{postgres (10.244.54.229:5432) open}, saída \texttt{0}).
-    \item \textbf{Atualização Contínua (\textit{Rolling Update}) e Operação 100\% Offline:} A substituição gradual de versão na API sob \texttt{maxSurge: 1} e \texttt{maxUnavailable: 0} manteve 100\% de disponibilidade durante a transição. Por fim, bloqueando-se todo o tráfego externo de internet no nó Minikube via regras \texttt{iptables REJECT} nas cadeias \texttt{OUTPUT} e \texttt{FORWARD} (confirmado pela falha de conexão a \texttt{https://registry-1.docker.io/v2/}), a recriação completa do ambiente (\texttt{reset.sh} + \texttt{deploy.sh}) e a exclusão forçada do \texttt{postgres-0} convergiram para \texttt{Running 1/1} em $6\text{--}12\,\text{s}$ com eventos \texttt{Pulled: Container image already present on machine}, validando a autonomia offline proporcionada por \texttt{imagePullPolicy: IfNotPresent}.
-\end{itemize}
+A Figura~\ref{fig:repos} permite seguir o encerramento de b5mqd e a entrada de 9xwwk; o quadro inferior confirma a volta a 3/3. Essa captura pertence a uma remoção diferente da medição de 5,897 s, cujo substituto foi wbgrv.
+\begin{figure}[H]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.41\textheight,keepaspectratio]{figuras/17-r5-transicao.png}}\\[2pt]
+\makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.41\textheight,keepaspectratio]{figuras/17-r5-recuperado.png}}\\[2pt]\caption{Acima, o acompanhamento contínuo registra o ciclo do substituto até Running e 1/1. Abaixo, a consulta ao Deployment confirma três réplicas prontas e disponíveis.}\label{fig:repos}\end{figure}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.84\columnwidth]{figuras/22-painel-banco-fora.png}
-\caption{Degradação graciosa no painel de telemetria durante a recriação do pod \texttt{postgres-0}: sinalização \textquotedbl{}BANCO FORA DO AR\textquotedbl{}, preservação do último contador em cache (\texttt{284}) e zero falhas HTTP nas 3 réplicas da API.}
-\label{fig:painel-banco-fora}
-\end{figure}
+\par\noindent\begin{minipage}{\linewidth}\begin{lstlisting}
+pod "api-58cf7fff8c-8kbgh" deleted from ha-demo namespace
+Tempo ate o retorno a 3 replicas Ready: 5897 ms
+\end{lstlisting}
+\end{minipage}\par
+
+Na série, a sonda fez requisições enquanto o controlador recompunha o conjunto. O procedimento de medição inclui o tempo das consultas ao cluster e da requisição HTTP, além da pausa entre tentativas. O resultado representa o instante em que a condição foi detectada pelo observador. A Tabela~\ref{tab:medidas} preserva os denominadores, pois uma rodada mais longa também pode admitir mais sondagens.
+\begin{table}[H]\centering\caption{Resultados por rodada. Reposição e escala são ensaios independentes. A coluna HTTP refere-se exclusivamente à reposição.}\label{tab:medidas}
+\begin{tabular}{rrrr}\toprule Rodada & Reposição (s) & HTTP atendidas/tentadas & Escala manual (s)\\\midrule
+1 & 5,96 & 34/34 & 7,16\\
+2 & 5,84 & 33/34 & 6,58\\
+3 & 8,84 & 40/40 & 6,82\\
+4 & 8,83 & 37/37 & 6,80\\
+5 & 8,38 & 37/37 & 6,75\\\bottomrule\end{tabular}\end{table}
+
+A reposição levou em média 7,57 s. A única falha HTTP ocorreu na rodada de menor tempo de reposição. Logo, nesta amostra, a rodada com convergência mais rápida ainda incluiu uma tentativa malsucedida. A proporção agregada foi de 181/182, ou 99,45\%, nas janelas medidas. O teste HTTP verifica o atendimento da rota e admite respostas em modo degradado. Ele não estima a disponibilidade anual, o percentual de escritas bem-sucedidas nem a \mbox{causa do erro individual.}
+\FloatBarrier\subsection{Escala solicitada e carga sobre o banco}
+O segundo experimento começou com três réplicas e alterou o estado desejado para dez. Entre a aceitação do pedido e a prontidão da última réplica há etapas de criação, inicialização e inclusão no conjunto disponível. O acompanhamento individual registrou 7,443 s até dez Ready. Nas cinco rodadas consolidadas, os tempos variaram de 6,58 a 7,16 s, com média de 6,82 s. A Figura~\ref{fig:tempos} mostra que as observações de escala ficaram mais próximas entre si que as de reposição. As duas operações têm condições de término distintas. A comparação descreve a dispersão observada, sem identificar a causa das diferenças.
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figuras/tempos-final.pdf}
+\caption{Comparação dos tempos de reposição automática de réplicas e escala manual, considerando cinco execuções de cada procedimento. Os pontos representam as medições individuais e as linhas verticais indicam as médias, de 7,57 s e 6,82 s, respectivamente.}\label{fig:tempos}\end{figure}
+
+A prontidão foi confrontada com a perspectiva do cliente. O painel passou a distinguir dez identidades nas respostas da janela observada (Figura~\ref{fig:dez}).
+\begin{figure}[!ht]\centering \includegraphics[width=\linewidth,height=.32\textheight,keepaspectratio]{figuras/17-r6-dez-pods.png}\\[2pt]\caption{Dez identificadores no painel após a escala manual. Cada cartão corresponde a uma réplica observada pelo cliente ao longo da amostra.}\label{fig:dez}\end{figure}
+
+{\interlinepenalty=10000 Em um ensaio complementar, após a confirmação do rollout, foram feitas 3000 consultas com até vinte clientes em paralelo. Todas as respostas contabilizadas continham o indicador de banco disponível. O Deployment apresentava dez réplicas prontas, e uma leitura pontual do PostgreSQL registrou 172 m de CPU e 39 Mi de memória. Isso verifica o caminho completo da consulta sob a carga aplicada. Para quantificar o ganho obtido com a escala, seriam necessárias execuções comparáveis com três e dez réplicas, taxas de chegada conhecidas e distribuições de latência. A contagem isolada de consultas também não determina a vazão máxima, pois não traz a duração da bateria.\par}
+A Figura~\ref{fig:carga} reúne a alteração do número de réplicas, o comando de carga e a contagem obtida no terminal.
+
+\begin{figure}[!ht]\centering \makebox[\linewidth][c]{\includegraphics[width=1.11\linewidth]{figuras/56-escala-carga.png}}\\[2pt]\caption{O ensaio inicia com a expansão para dez, confirma o rollout e agrega as respostas pelo indicador do banco. O paralelismo máximo solicitado foi vinte.}\label{fig:carga}\end{figure}
+
+\FloatBarrier\subsection{Recriação do banco e continuidade das visitas}\label{sec:dados}
+{\interlinepenalty=10000 Enquanto a remoção de uma réplica HTTP deixa outras aptas a gravar, a remoção da única instância do PostgreSQL interrompe a dependência comum a todas elas. Para observar essa diferença, a equipe acumulou visitas, leu a contagem, removeu o pod do banco e consultou a mesma rota durante sua recriação. A API continuou a devolver HTTP 200, mas indicou banco indisponível e contagem nula. A sequência da Figura~\ref{fig:queda} permite confrontar as duas camadas na mesma execução.\par}
+Após o novo postgres-0 atingir a condição Ready, uma consulta voltou a registrar uma visita. As cinco comparações antes/depois foram 314/315, 260/261, 282/283, 502/503 e 524/525. Em todas, a primeira leitura posterior foi compatível com a conservação da contagem anterior acrescida da nova visita. Os registros detalhados das três primeiras execuções permitem confrontar o estado do banco e a identidade do PVC com a sequência de respostas. Para as duas últimas, o material disponível registra os pares no CSV.
+
+Há dois resultados distintos. A separação entre prontidão HTTP e prontidão do banco permitiu que a interface explicasse a degradação. A remontagem do volume permitiu retomar o contador a partir do estado anteriormente observado. A contagem agregada não revela se cada identificador e cada conteúdo de linha permaneceram idênticos. O teste também conserva o armazenamento e o nó; não verifica restauração de backup nem recuperação após perda física do volume.
+\begin{figure}[H]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.28\textheight,keepaspectratio]{figuras/22-antes-queda.png}}\\[2pt]
+\makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.28\textheight,keepaspectratio]{figuras/22-durante-queda.png}}\\[2pt]
+\makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.28\textheight,keepaspectratio]{figuras/22-depois-recuperado.png}}\\[2pt]\caption{Execução 2, em ordem temporal. A API retorna 260 antes da exclusão. Durante a recriação, responde HTTP 200 com contador nulo. Após a espera por Ready, a consulta registra 261.}\label{fig:queda}\end{figure}
+
+A Figura~\ref{fig:degradado} mostra como o painel comunicou essa diferença ao usuário.
+\begin{figure}[H]\centering\includegraphics[width=.79\linewidth]{figuras/22-painel-banco-fora.png}
+\caption{O aviso de banco fora do ar acompanha a última contagem conhecida. A permanência de um número na interface durante a queda não equivale à confirmação de uma nova escrita.}\label{fig:degradado}\end{figure}
+
+
+
+A Figura~\ref{fig:pvc} identifica o objeto de armazenamento usado na comparação. A saída deve ser lida em conjunto com as consultas de PVC antes e depois, pois uma captura isolada identifica o claim em apenas um instante. A Tabela~\ref{tab:pvc-uid} compara as duas leituras de cada execução.
+\begin{figure}[H]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.39\textheight,keepaspectratio]{figuras/22-pvc-preservado.png}}\\[2pt]\caption{Nome, UID e data de criação do PVC associado a postgres-0. O vínculo permite distinguir substituição do pod de substituição do volume.}\label{fig:pvc}\end{figure}
+
+\par\noindent\begin{minipage}{\linewidth}\begin{lstlisting}
+$ kubectl delete pod postgres-0 -n ha-demo
+$ kubectl wait --for=condition=Ready pod/postgres-0 -n ha-demo --timeout=120s
+\end{lstlisting}
+\end{minipage}\par
+
+
+\begin{table}[H]\centering\small
+\caption{Identidade do PVC \texttt{data-postgres-0} antes e depois da recriação de postgres-0. Cada par corresponde às consultas registradas nas linhas 14 e 101 do respectivo log de execução.}\label{tab:pvc-uid}
+\footnotesize\setlength{\tabcolsep}{3pt}\begin{tabular}{@{}cll@{}}\toprule Execução & UID antes da remoção & UID após a recriação \\\midrule
+1 & \texttt{873f564d-32f8-4e88-8472-cb408247b7b9} & \texttt{873f564d-32f8-4e88-8472-cb408247b7b9} \\
+2 & \texttt{873f564d-32f8-4e88-8472-cb408247b7b9} & \texttt{873f564d-32f8-4e88-8472-cb408247b7b9} \\
+3 & \texttt{873f564d-32f8-4e88-8472-cb408247b7b9} & \texttt{873f564d-32f8-4e88-8472-cb408247b7b9} \\
+\bottomrule\end{tabular}
+\end{table}
+
+
+\FloatBarrier\subsection{Política de rede e controle de causalidade}
+Uma conexão que expira pode indicar tanto bloqueio de rede quanto indisponibilidade do destino. Por isso, o controle mais informativo foi variar a política mantendo o cliente e a porta de destino. Com a política ativa, um pod sem o rótulo autorizado recebeu timeout ao tentar uma conexão TCP com o banco. Na verificação complementar, o cliente identificado como app=api conseguiu abrir a porta, e consultas da aplicação retornaram banco disponível.
+
+A Figura~\ref{fig:clientes} distingue os dois clientes testados com a política ativa.
+\begin{figure}[H]\centering \includegraphics[width=\linewidth,height=.32\textheight,keepaspectratio]{figuras/23-intruso.png}\\[2pt]
+\includegraphics[width=\linewidth,height=.32\textheight,keepaspectratio]{figuras/23-permitidos.png}\\[2pt]\caption{Sondagens ao mesmo destino: o cliente sem o rótulo autorizado expira; o pod com app=api abre a porta. As linhas finais verificam o estado do banco pela aplicação.}\label{fig:clientes}\end{figure}
+
+O grupo então retirou a política, repetiu a sondagem pelo cliente antes bloqueado e voltou a aplicá-la. A conexão abriu na ausência da regra e voltou a expirar após sua restauração, como registra a Figura~\ref{fig:rede}. A reversibilidade do efeito sustenta a interpretação de que o seletor de origem influenciou o acesso. O ensaio diz respeito ao ingresso nessa porta e nesse namespace. A abertura de TCP, isoladamente, não concede autenticação SQL nem verifica outras políticas do cluster.
+\begin{figure}[H]\centering\includegraphics[width=\linewidth]{figuras/23-controle.png}
+\caption{Contraprova com o mesmo cliente e destino. A sondagem retorna conexão aberta sem a política e timeout depois de reaplicá-la.}\label{fig:rede}\end{figure}
+\FloatBarrier\subsection{Elasticidade acionada pela utilização de CPU}
+Na escala manual, a quantidade final é uma decisão do operador. Aqui a equipe aplicou um HPA ao Deployment, observou três réplicas em repouso e iniciou um gerador com seis fluxos para uma rota que consome CPU. A variável usada pelo controlador é a utilização relativa ao pedido de CPU das réplicas. Um valor acima de 100\% é possível porque o pedido usado como referência é inferior ao limite de execução.
+
+As Figuras~\ref{fig:hpa1} e~\ref{fig:hpa2} acompanham os dois sentidos da mudança. O comando de carga aparece no terminal junto da mensagem que identifica seis fluxos.
+\begin{figure}[!ht]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-antes.png}}\\[2pt]
+\makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-escalando.png}}\\[2pt]\caption{De cima para baixo, aplicação do HPA e observação sob carga. A coluna REPLICAS passa por 3, 6 e 10; TARGETS compara a utilização medida à meta.}\label{fig:hpa1}\end{figure}
+
+Em repouso, o controlador registrou 2\% para uma meta de 50\%. Sob carga, a utilização chegou a 230\%, e a contagem passou de três a seis e depois a dez réplicas, o teto configurado. A utilização ainda estava em 133\% em uma observação posterior com dez réplicas. A expansão evidencia a atuação do controlador e ilustra uma limitação importante: atingir o máximo permitido pode deixar a medida acima da meta. Depois de encerrar a carga, o registro mostra 2\% ainda com dez réplicas e, mais tarde, 2\% com três. O retorno posterior à queda da métrica é compatível com uma decisão de redução estabilizada. Os instantes da saída são idades do recurso; não medem a latência de uma solicitação de usuário.
+
+\begin{figure}[!ht]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-reducao.png}}\\[2pt]\caption{O terminal mostra o início e a interrupção do gerador. Depois da remoção do pod de carga, a utilização cai e o Deployment retorna a três réplicas.}\label{fig:hpa2}\end{figure}
+
+\FloatBarrier\subsection{Disponibilidade de imagens e verificação da implantação}
+{\interlinepenalty=10000 A reconciliação depende de haver uma imagem utilizável pelo nó. O controle negativo introduziu uma tag inexistente para o banco. O script aplicou os recursos, mas a espera pela atualização do StatefulSet expirou, o pod ficou em ImagePullBackOff e o processo terminou com saída 1. A aceitação dos recursos, portanto, não assegurou o início da carga de trabalho.\par}
+
+A Figura~\ref{fig:pull} registra o erro controlado. ImagePullBackOff indica que a obtenção da imagem falhou e que o kubelet aguarda antes de repetir a tentativa.
+\begin{figure}[H]\centering \includegraphics[width=\linewidth,height=.34\textheight,keepaspectratio]{figuras/56-deploy-falha.png}\\[2pt]\caption{A tag inexistente impede a inicialização do PostgreSQL. A implantação expira e o script informa falha ao operador.}\label{fig:pull}\end{figure}
+
+O teste offline examinou a condição oposta. A equipe preparou as imagens antes de bloquear a saída do nó, verificou que a conexão ao registro externo falhava e então recriou o ambiente. As réplicas da API e o banco chegaram a Running, e o gerador de carga pôde iniciar. Em outra execução, a equipe removeu apenas o pod do banco sob bloqueio e aguardou sua prontidão. O evento de inicialização confirmou o uso da imagem local (Figura~\ref{fig:offline}). O ensaio pressupõe imagens previamente carregadas; a instalação em nó vazio e desconectado permanece sem verificação.
+
+
+\begin{figure}[H]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.39\textheight,keepaspectratio]{figuras/56-offline-teste.png}}\\[2pt]\caption{Recriação do pod do PostgreSQL com o registro externo inacessível. A última linha do evento identifica a imagem já presente no nó.}\label{fig:offline}\end{figure}
+
+Uma inspeção adicional do banco em execução confirmou o pedido de memória de 256 Mi, o limite de 512 Mi e as sondas locais de prontidão e vivacidade. A sondagem documenta parâmetros ativos. Para atribuir um reinício à vivacidade seria preciso registrar a falha da sonda e o incremento do número de reinícios do contêiner. A exclusão de um pod no experimento de reposição exercita outro mecanismo.
