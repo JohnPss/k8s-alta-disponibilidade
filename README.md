@@ -66,7 +66,7 @@ Para garantir que a apresentação funcione em ambientes sem acesso à internet 
 
 | Imagem | Origem | Finalidade |
 |---|---|---|
-| `api:1.5` | Build local (`minikube image build`) | Imagem da API Flask com 3 réplicas |
+| `api:1.6` | Build local (`minikube image build`) | Imagem da API Flask com 3 réplicas |
 | `postgres:16-alpine` | Pré-carregada (`minikube image pull`) | Banco de dados persistente (StatefulSet) |
 | `busybox:1.36` | Pré-carregada (`minikube image pull`) | InitContainer de espera do banco (`wait-for-postgres`) e carga do HPA (`load-hpa.sh`) |
 
@@ -78,7 +78,7 @@ O pré-carregamento é realizado automaticamente pelo passo 7 do `./scripts/setu
 minikube image ls
 ```
 
-As imagens `docker.io/library/api:1.5`, `docker.io/library/postgres:16-alpine` e `docker.io/library/busybox:1.36` devem constar na listagem.
+As imagens `docker.io/library/api:1.6`, `docker.io/library/postgres:16-alpine` e `docker.io/library/busybox:1.36` devem constar na listagem.
 
 ### Resultado do teste real sem internet
 

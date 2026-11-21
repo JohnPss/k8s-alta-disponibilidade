@@ -29,7 +29,7 @@ spec:
             allowPrivilegeEscalation: false
       containers:
         - name: api
-          image: api:1.5              # ajustes de auditoria v1.0 (AUD-01, 05, 06, 08)
+          image: api:1.6              # correções finais (#36): gunicorn, painel e dependências fixas
           imagePullPolicy: IfNotPresent # imagem local do Minikube, não baixa do Docker Hub
           ports: [{ containerPort: 8080 }]
           securityContext:            # imagem roda com USER app (não-root) na porta 8080 (AUD-12)
@@ -45,8 +45,8 @@ spec:
             - { name: POD_IP,   valueFrom: { fieldRef: { fieldPath: status.podIP } } }
             - { name: NODE_NAME, valueFrom: { fieldRef: { fieldPath: spec.nodeName } } }
           resources:                  # viram limites de cgroup no nó; requests também é base do HPA
-            requests: { cpu: 100m, memory: 64Mi }
-            limits:   { cpu: 250m, memory: 128Mi }
+            requests: { cpu: 100m, memory: 96Mi }
+            limits:   { cpu: 250m, memory: 256Mi }
           readinessProbe:             # tira o pod do Service enquanto não está pronto (não consulta o banco)
             httpGet: { path: /readyz, port: 8080 }
             initialDelaySeconds: 2

@@ -4,7 +4,7 @@
 **Grupo:** G3, Tema 5
 **Integrantes:** João Pedro, João Vitor, Ahmed, Bernardo, Luiz, Hugo, Lucas, Thallys
 **Entrega:** 21/11/2026. **Apresentação:** 23/11/2026 (até 40 min, live demo)
-**Valor:** 10,0 pontos
+**Valor:** 20,0 pontos
 
 ---
 
@@ -14,7 +14,7 @@ Vamos subir num cluster Kubernetes local (**Minikube**) uma **API web própria (
 
 A API responde **qual pod atendeu a requisição**. Com isso a turma vê no navegador o balanceamento, o self-healing e a escala de 3 para 10 pods acontecendo.
 
-O que é **obrigatório** pelo PDF está marcado com **[OBRIGATÓRIO]**. O restante são **extras**, escolhidos pra garantir nota cheia no critério "Configuração do Orquestrador" (3,0 pts). Esse critério cobra *redes, volumes, réplicas, variáveis de ambiente e dependências*, e o mínimo da Prática 5 (Deployment + Service) não cobre tudo isso.
+O que é **obrigatório** pelo PDF está marcado com **[OBRIGATÓRIO]**. O restante são **extras**, escolhidos pra garantir nota cheia no critério "Configuração do Orquestrador" (6,0 pts). Esse critério cobra *redes, volumes, réplicas, variáveis de ambiente e dependências*, e o mínimo da Prática 5 (Deployment + Service) não cobre tudo isso.
 
 ---
 
@@ -30,7 +30,7 @@ O que é **obrigatório** pelo PDF está marcado com **[OBRIGATÓRIO]**. O resta
 | R6 | Validação: `kubectl scale deployment <nome> --replicas=10` ao vivo | Validação |
 | R7 | Relatório em **LaTeX**: Introdução, Arquitetura (diagrama), Tecnologias, Execução/Validação (prints e logs), Conclusão, Repositório | Seção 3 |
 | R8 | Repositório **GitHub** com os YAMLs e o código-fonte | Seção 3, item 6 |
-| R9 | Manifestos com redes, volumes, réplicas, variáveis de ambiente e dependências | Critério 1 (3,0) |
+| R9 | Manifestos com redes, volumes, réplicas, variáveis de ambiente e dependências | Critério 1 (6,0) |
 | R10 | Demo ao vivo (ou vídeo sem cortes) de até 40 min, na ordem: Arquitetura → Deploy → Validação → Arguição | Seção 5 |
 | R11 | Infra base já instalada no notebook antes da apresentação | Seção 5, item 2 |
 | R12 | Todos os membros operam o terminal e respondem perguntas | Seção 5, item 4 / Critério 4 |
@@ -51,11 +51,11 @@ O que é **obrigatório** pelo PDF está marcado com **[OBRIGATÓRIO]**. O resta
 | Dependência API → banco | **initContainer** que espera o Postgres responder na 5432 | `depends_on` (não existe no K8s) | É a forma idiomática de declarar dependência de inicialização no K8s. |
 | Saúde | **livenessProbe** (`/healthz`) + **readinessProbe** (`/readyz`) | Sem probes | A liveness dá self-healing **também quando a app trava** (não só quando o pod é deletado). A readiness tira do balanceamento os pods que ainda não estão prontos. |
 | Readiness × banco | A readiness **não** depende do banco | Readiness checando o banco | Se o banco cair, a API continua no ar respondendo "banco indisponível", em vez de todos os pods saírem do Service (evita falha em cascata). |
-| Recursos | `requests` 100m CPU / 64Mi, `limits` 250m / 128Mi | Sem limites | Liga com o conteúdo de SO (cgroups, contenção). Garante que 10 réplicas cabem no nó e é pré-requisito do HPA. |
+| Recursos | `requests` 100m CPU / 96Mi, `limits` 250m / 256Mi | Sem limites | Liga com o conteúdo de SO (cgroups, contenção). Garante que 10 réplicas cabem no nó e é pré-requisito do HPA. |
 | Isolamento | **Namespace `ha-demo`** | `default` | Organização e limpeza fácil (`kubectl delete ns ha-demo`). |
 | Rede interna | **NetworkPolicy**: só pods `app=api` acessam `postgres:5432` | Sem política | Mostra isolamento de rede entre componentes. |
 | Autoscaling | **HPA** (3 a 10 pods, CPU 50%) como **extra separado** em `extras/` | HPA junto dos manifestos base | Com o HPA ativo, o `kubectl scale --replicas=10` do roteiro obrigatório **seria desfeito** e ele voltaria a 3. Por isso ele só é aplicado **depois** da validação obrigatória. |
-| Imagem | Build **dentro do Minikube** (`minikube image build`), tag fixa `api:1.0`, `imagePullPolicy: IfNotPresent` | Docker Hub | Não depende de internet nem de registry na hora da apresentação. |
+| Imagem | Build **dentro do Minikube** (`minikube image build`), tag fixa `api:1.6`, `imagePullPolicy: IfNotPresent` | Docker Hub | Não depende de internet nem de registry na hora da apresentação. |
 | Distribuição da carga no navegador | API responde com header `Connection: close` | Padrão keep-alive | O kube-proxy balanceia **por conexão**. Com keep-alive o navegador ficaria preso num pod só. Assim cada requisição pode cair num pod diferente. |
 | Aplicação dos manifestos | `kubectl apply -f k8s/` com arquivos numerados | Helm / Kustomize | É simples, transparente e fácil de explicar na arguição. |
 
@@ -169,7 +169,7 @@ k8s-alta-disponibilidade/
 
 ### 6.2 Dockerfile
 - Base `python:3.12-slim`, com **usuário não-root**, `EXPOSE 8080` e `CMD gunicorn ...`.
-- Build: `minikube image build -t api:1.0 ./app`.
+- Build: `minikube image build -t api:1.6 ./app`.
 
 ### 6.3 Manifestos: pontos-chave
 
@@ -198,7 +198,7 @@ spec:
           command: ["sh", "-c", "until nc -z postgres 5432; do echo aguardando postgres; sleep 2; done"]
       containers:
         - name: api
-          image: api:1.0
+          image: api:1.6
           imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 8080 }]
           envFrom:
@@ -209,8 +209,8 @@ spec:
             - { name: POD_IP,   valueFrom: { fieldRef: { fieldPath: status.podIP } } }
             - { name: NODE_NAME, valueFrom: { fieldRef: { fieldPath: spec.nodeName } } }
           resources:
-            requests: { cpu: 100m, memory: 64Mi }
-            limits:   { cpu: 250m, memory: 128Mi }
+            requests: { cpu: 100m, memory: 96Mi }
+            limits:   { cpu: 250m, memory: 256Mi }
           readinessProbe:
             httpGet: { path: /readyz, port: 8080 }
             initialDelaySeconds: 2
@@ -289,8 +289,8 @@ Hoje é 28/09. São 8 semanas até a entrega em 21/11.
 
 ### Semana 2 (05/10 – 11/10): Aplicação
 - [ ] D2: `app.py` com `/`, `/api/whoami`, `/healthz`, `/readyz`, **ainda sem banco**.
-- [ ] D2: Dockerfile e teste local com `docker run -p 8080:8080 api:1.0`.
-- [ ] D2: `minikube image build -t api:1.0 ./app`.
+- [ ] D2: Dockerfile e teste local com `docker run -p 8080:8080 api:1.6`.
+- [ ] D2: `minikube image build -t api:1.6 ./app`.
 
 ### Semana 3 (12/10 – 18/10): **Marco M2, o obrigatório funcionando**
 - [ ] D3: `00-namespace`, `30-api-deployment` (sem initContainer e sem envFrom por enquanto) e `31-api-service`.
@@ -430,7 +430,7 @@ Variáveis: `NS=ha-demo`, `URL=http://$(minikube ip):30080`.
 - **Falta de internet na sala:** resolvido com imagens pré-carregadas no Minikube.
 - **Falha em cascata se o banco cair:** resolvido com a readiness independente do banco.
 
-**Conclusão da checagem:** todos os requisitos obrigatórios da Prática 5, do relatório e da dinâmica de apresentação estão cobertos. Os extras reforçam o critério 1 (3,0 pts) e a arguição (1,5 pts) sem colocar o obrigatório em risco, porque o marco M2 (semana 3) garante o obrigatório antes de qualquer extra.
+**Conclusão da checagem:** todos os requisitos obrigatórios da Prática 5, do relatório e da dinâmica de apresentação estão cobertos. Os extras reforçam o critério 1 (6,0 pts) e a arguição (3,0 pts) sem colocar o obrigatório em risco, porque o marco M2 (semana 3) garante o obrigatório antes de qualquer extra.
 
 ---
 

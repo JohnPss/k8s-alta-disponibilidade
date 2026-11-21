@@ -23,7 +23,7 @@
       min-width: 320px;
       min-height: 100vh;
       margin: 0;
-      padding: 28px clamp(18px, 5vw, 72px) 36px;
+      padding: 20px clamp(18px, 5vw, 72px) 20px;
       color: var(--ink);
       background-color: #2e86de;
       background-image: radial-gradient(rgba(255, 255, 255, .13) 1px, transparent 1px);
@@ -89,17 +89,17 @@
 
     .hero {
       display: flex;
-      min-height: 245px;
+      min-height: 136px;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 34px 0;
+      padding: 14px 0 18px;
       text-align: center;
       color: #fff;
     }
 
     .eyebrow {
-      margin: 0 0 20px;
+      margin: 0 0 10px;
       font-size: .78rem;
       font-weight: 800;
       letter-spacing: .17em;
@@ -110,7 +110,7 @@
       max-width: 100%;
       margin: 0;
       font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-size: clamp(2.2rem, 5.2vw, 3.5rem);
       font-weight: 500;
       line-height: 1.03;
       overflow-wrap: anywhere;
@@ -118,7 +118,7 @@
 
     .message {
       max-width: 720px;
-      margin: 14px auto 0;
+      margin: 10px auto 0;
       font-size: 1.12rem;
       line-height: 1.45;
     }
@@ -145,30 +145,37 @@
       box-shadow: 0 18px 55px rgba(10, 31, 35, .14);
     }
 
-    .detail { min-width: 0; padding: 22px 24px 24px; }
+    .detail { min-width: 0; padding: 16px 20px 18px; }
     .detail + .detail { border-left: 1px solid var(--line); }
     .detail dt, .section-label { color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
     .detail dd { margin: 9px 0 0; font-size: 1.18rem; font-weight: 700; overflow-wrap: anywhere; }
 
-    .dashboard { margin-top: 36px; color: #fff; }
-    .dashboard h2 { margin: 0 0 15px; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .dashboard,
+    .pods-section,
+    .responses-section,
+    .rollout-section { color: #fff; }
+    .dashboard { margin-top: 22px; }
+    .dashboard h2,
+    .pods-section h2,
+    .responses-section h2,
+    .rollout-section h2 { margin: 0 0 10px; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
     .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .metric {
       min-width: 0;
-      padding: 15px 18px;
+      padding: 12px 16px;
       border: 1px solid rgba(255, 255, 255, .38);
       border-radius: 4px;
       background: rgba(9, 35, 51, .22);
     }
     .metric-label { display: block; color: rgba(255, 255, 255, .78); font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     .metric-value { display: block; margin-top: 5px; font-size: clamp(1.45rem, 3vw, 2rem); font-variant-numeric: tabular-nums; font-weight: 800; }
-    .pods-section { margin-top: 30px; }
+    .pods-section { margin-top: 20px; }
     .pod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
     .pod-card {
       position: relative;
-      min-height: 122px;
+      min-height: 104px;
       overflow: hidden;
-      padding: 14px 16px;
+      padding: 12px 14px;
       border: 1px solid rgba(255, 255, 255, .58);
       border-top: 5px solid var(--pod-color);
       border-radius: 4px;
@@ -180,7 +187,7 @@
     .pod-card.is-stale { filter: grayscale(1); opacity: .68; }
     .pod-card.is-new { animation: appear 400ms ease both; }
     .pod-prefix { display: block; overflow: hidden; color: var(--muted); font-size: .72rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-    .pod-suffix { display: block; margin-top: 9px; overflow: hidden; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; letter-spacing: -.04em; text-overflow: ellipsis; white-space: nowrap; }
+    .pod-suffix { display: block; margin-top: 6px; overflow: hidden; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; letter-spacing: -.04em; text-overflow: ellipsis; white-space: nowrap; }
     .pod-badge {
       position: absolute;
       top: 11px;
@@ -195,7 +202,7 @@
     }
     .pod-version {
       display: inline-block;
-      margin-top: 12px;
+      margin-top: 8px;
       padding: 3px 8px;
       border-radius: 999px;
       background: #2e86de;
@@ -205,12 +212,11 @@
       letter-spacing: .04em;
     }
     .empty-state { margin: 0; padding: 16px 0; color: rgba(255, 255, 255, .82); font-size: .92rem; }
-    .responses-section { margin-top: 30px; padding-bottom: 28px; }
+    .responses-section { margin-top: 20px; padding-bottom: 12px; }
     .response-track { display: flex; min-height: 24px; flex-wrap: wrap; gap: 6px; }
     .response-tile { width: 17px; height: 17px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 2px; }
     .response-tile.is-failure { background: repeating-linear-gradient(135deg, #fff 0 3px, #d7263d 3px 6px); }
-    .rollout-section { margin-top: 30px; color: #fff; }
-    .rollout-section h2 { margin: 0 0 15px; font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .rollout-section { margin-top: 20px; }
     .rollout-panel { padding: 16px 18px 14px; border-radius: 4px; background: rgba(255, 255, 255, .96); box-shadow: 0 8px 22px rgba(10, 31, 35, .13); }
     .rollout-bar { display: flex; height: 34px; overflow: hidden; border-radius: 4px; background: #e7eef2; }
     .rollout-seg {
@@ -233,6 +239,8 @@
     body.is-light .topbar,
     body.is-light .hero,
     body.is-light .dashboard,
+    body.is-light .pods-section,
+    body.is-light .responses-section,
     body.is-light .rollout-section { color: var(--ink); }
     body.is-light .connection { border-color: rgba(16, 38, 41, .35); background: rgba(255, 255, 255, .45); color: var(--ink); }
     body.is-light .connection.is-error,
@@ -298,7 +306,7 @@
       </dl>
 
       <section class="dashboard" aria-labelledby="metrics-title">
-        <h2 id="metrics-title">Monitorização em tempo real</h2>
+        <h2 id="metrics-title">Monitoramento em tempo real</h2>
         <div class="metrics">
           <div class="metric"><span class="metric-label">Requisições</span><strong id="request-count" class="metric-value">0</strong></div>
           <div class="metric"><span class="metric-label">Falhas</span><strong id="failure-count" class="metric-value">0</strong></div>
@@ -308,7 +316,7 @@
       </section>
 
       <section class="pods-section" aria-labelledby="pods-title">
-        <h2 id="pods-title">Pods detetados</h2>
+        <h2 id="pods-title">Pods detectados</h2>
         <div id="pod-grid" class="pod-grid" aria-live="polite">
           <p class="empty-state">Aguardando respostas</p>
         </div>
