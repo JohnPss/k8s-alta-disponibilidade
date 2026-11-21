@@ -2,7 +2,7 @@
 \FloatBarrier\subsection{Ambiente e critérios de leitura}
 A equipe registrou um cluster Minikube 1.39.0 com Kubernetes 1.37.0, driver Docker, runtime containerd e rede Calico. O cadastro inicial informa quatro CPUs e 6144 MB de memória; o resumo também identifica o perfil de testes com 4096 MB. Os registros pertencem a momentos distintos. Os eventos de reposição citam a imagem api:1.3 e a preparação do ensaio offline geral registra api:1.4. O manifesto do Deployment da versão documentada utiliza a imagem api:1.5. A versão exibida pelo painel é um parâmetro de configuração e não identifica, por si, a imagem executada.
 
-\paragraph{Verificação inicial do cluster.} O cadastro do ambiente identifica o nó minikube em condição Ready (control-plane). Os trechos abaixo, extraídos da inspeção do Deployment e do Service, documentam três réplicas prontas e disponíveis e a publicação pela porta 30080 do nó.
+\paragraph{Verificação inicial do cluster.} O cadastro do ambiente identifica o nó minikube em condição Ready (control-plane). Os trechos abaixo, extraídos da inspeção do Deployment e do Service após a aplicação dos manifestos (\texttt{kubectl apply -f k8s/}), documentam três réplicas prontas e disponíveis e a publicação pela porta 30080 do nó.
 \par\noindent\begin{minipage}{\linewidth}\begin{lstlisting}
 NAME   READY   UP-TO-DATE   AVAILABLE   AGE
 api    3/3     3            3           85s
@@ -27,30 +27,31 @@ A distribuição desigual é informativa: uma amostra curta pode apresentar vár
 \begin{figure}[H]\centering\includegraphics[width=.79\linewidth]{figuras/17-r4-pagina.png}
 \caption{O painel distingue o pod que respondeu por último dos três identificadores encontrados na janela de observação. Os indicadores de falhas e de latência pertencem a esse cliente.}\label{fig:painel}\end{figure}
 \FloatBarrier\subsection{Reposição de uma réplica e continuidade HTTP}
-{\interlinepenalty=10000 A remoção de um pod permite separar o tempo de restabelecimento da capacidade declarada da interrupção percebida por um cliente. Em uma execução registrada individualmente, o grupo partiu de três réplicas prontas e solicitou a exclusão de uma delas. Durante a transição, duas continuaram prontas, enquanto o novo pod passou pela inicialização e chegou a Running antes de se tornar Ready. A medição terminou quando havia novamente três réplicas prontas e a identidade excluída já não contribuía para a contagem. Essa execução demorou 5,897 s; ela é apresentada separadamente da série consolidada de cinco rodadas.\par}
+{\interlinepenalty=10000 A remoção de um pod permite separar o tempo de restabelecimento da capacidade declarada da interrupção percebida por um cliente. Em uma execução registrada individualmente, o grupo partiu de três réplicas prontas e solicitou a exclusão de uma delas (\texttt{kubectl delete pod}). Durante a transição, duas continuaram prontas, enquanto o novo pod passou pela inicialização e chegou a Running antes de se tornar Ready. A medição terminou quando havia novamente três réplicas prontas e a identidade excluída já não contribuía para a contagem. Essa execução demorou 5,897 s; ela é apresentada separadamente da série consolidada de cinco rodadas.\par}
 
 A Figura~\ref{fig:repos} permite seguir o encerramento de b5mqd e a entrada de 9xwwk; o quadro inferior confirma a volta a 3/3. Essa captura pertence a uma remoção diferente da medição de 5,897 s, cujo substituto foi wbgrv.
-\begin{figure}[H]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.41\textheight,keepaspectratio]{figuras/17-r5-transicao.png}}\\[2pt]
-\makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.41\textheight,keepaspectratio]{figuras/17-r5-recuperado.png}}\\[2pt]\caption{Acima, o acompanhamento contínuo registra o ciclo do substituto até Running e 1/1. Abaixo, a consulta ao Deployment confirma três réplicas prontas e disponíveis.}\label{fig:repos}\end{figure}
+\begin{figure}[H]\centering \includegraphics[width=\linewidth,height=0.41\textheight,keepaspectratio]{figuras/17-r5-transicao.png}\\[2pt]
+\includegraphics[width=\linewidth,height=0.41\textheight,keepaspectratio]{figuras/17-r5-recuperado.png}\\[2pt]\caption{Acima, o acompanhamento contínuo registra o ciclo do substituto até Running e 1/1. Abaixo, a consulta ao Deployment confirma três réplicas prontas e disponíveis.}\label{fig:repos}\end{figure}
 
 \par\noindent\begin{minipage}{\linewidth}\begin{lstlisting}
 pod "api-58cf7fff8c-8kbgh" deleted from ha-demo namespace
-Tempo ate o retorno a 3 replicas Ready: 5897 ms
+Tempo do comando de delete até substituição e 3 Ready: 5897 ms
 \end{lstlisting}
 \end{minipage}\par
 
 Na série, a sonda fez requisições enquanto o controlador recompunha o conjunto. O procedimento de medição inclui o tempo das consultas ao cluster e da requisição HTTP, além da pausa entre tentativas. O resultado representa o instante em que a condição foi detectada pelo observador. A Tabela~\ref{tab:medidas} preserva os denominadores, pois uma rodada mais longa também pode admitir mais sondagens.
 \begin{table}[H]\centering\caption{Resultados por rodada. Reposição e escala são ensaios independentes. A coluna HTTP refere-se exclusivamente à reposição.}\label{tab:medidas}
-\begin{tabular}{rrrr}\toprule Rodada & Reposição (s) & HTTP atendidas/tentadas & Escala manual (s)\\\midrule
+\begin{tabular}{lrrr}\toprule Rodada & Reposição (s) & HTTP atendidas/tentadas & Escala manual (s)\\\midrule
 1 & 5,96 & 34/34 & 7,16\\
 2 & 5,84 & 33/34 & 6,58\\
 3 & 8,84 & 40/40 & 6,82\\
 4 & 8,83 & 37/37 & 6,80\\
-5 & 8,38 & 37/37 & 6,75\\\bottomrule\end{tabular}\end{table}
+5 & 8,38 & 37/37 & 6,75\\\midrule
+Média $\pm$ DP & 7,57 $\pm$ 1,54 & 181/182 (99,45\%) & 6,82 $\pm$ 0,21\\\bottomrule\end{tabular}\end{table}
 
-A reposição levou em média 7,57 s. A única falha HTTP ocorreu na rodada de menor tempo de reposição. Logo, nesta amostra, a rodada com convergência mais rápida ainda incluiu uma tentativa malsucedida. A proporção agregada foi de 181/182, ou 99,45\%, nas janelas medidas. O teste HTTP verifica o atendimento da rota e admite respostas em modo degradado. Ele não estima a disponibilidade anual, o percentual de escritas bem-sucedidas nem a \mbox{causa do erro individual.}
+A reposição levou em média 7,57 $\pm$ 1,54 s. A única falha HTTP ocorreu na rodada de menor tempo de reposição. Logo, nesta amostra, a rodada com convergência mais rápida ainda incluiu uma tentativa malsucedida. A proporção agregada foi de 181/182, ou 99,45\%, nas janelas medidas. O teste HTTP verifica o atendimento da rota e admite respostas em modo degradado. Ele não estima a disponibilidade anual, o percentual de escritas bem-sucedidas nem a \mbox{causa do erro individual.}
 \FloatBarrier\subsection{Escala solicitada e carga sobre o banco}
-O segundo experimento começou com três réplicas e alterou o estado desejado para dez. Entre a aceitação do pedido e a prontidão da última réplica há etapas de criação, inicialização e inclusão no conjunto disponível. O acompanhamento individual registrou 7,443 s até dez Ready. Nas cinco rodadas consolidadas, os tempos variaram de 6,58 a 7,16 s, com média de 6,82 s. A Figura~\ref{fig:tempos} mostra que as observações de escala ficaram mais próximas entre si que as de reposição. As duas operações têm condições de término distintas. A comparação descreve a dispersão observada, sem identificar a causa das diferenças.
+O segundo experimento começou com três réplicas e alterou o estado desejado para dez (\texttt{kubectl scale deployment api -n ha-demo -{}-replicas=10}). Entre a aceitação do pedido e a prontidão da última réplica há etapas de criação, inicialização e inclusão no conjunto disponível. O acompanhamento individual registrou 7,443 s até dez Ready. Nas cinco rodadas consolidadas, os tempos variaram de 6,58 a 7,16 s, com média de 6,82 $\pm$ 0,21 s. A Figura~\ref{fig:tempos} mostra que as observações de escala ficaram mais próximas entre si que as de reposição. As duas operações têm condições de término distintas. A comparação descreve a dispersão observada, sem identificar a causa das diferenças.
 \begin{figure}[H]\centering\includegraphics[width=\linewidth]{figuras/tempos-final.pdf}
 \caption{Comparação dos tempos de reposição automática de réplicas e escala manual, considerando cinco execuções de cada procedimento. Os pontos representam as medições individuais e as linhas verticais indicam as médias, de 7,57 s e 6,82 s, respectivamente.}\label{fig:tempos}\end{figure}
 
@@ -60,16 +61,24 @@ A prontidão foi confrontada com a perspectiva do cliente. O painel passou a dis
 {\interlinepenalty=10000 Em um ensaio complementar, após a confirmação do rollout, foram feitas 3000 consultas com até vinte clientes em paralelo. Todas as respostas contabilizadas continham o indicador de banco disponível. O Deployment apresentava dez réplicas prontas, e uma leitura pontual do PostgreSQL registrou 172 m de CPU e 39 Mi de memória. Isso verifica o caminho completo da consulta sob a carga aplicada. Para quantificar o ganho obtido com a escala, seriam necessárias execuções comparáveis com três e dez réplicas, taxas de chegada conhecidas e distribuições de latência. A contagem isolada de consultas também não determina a vazão máxima, pois não traz a duração da bateria.\par}
 A Figura~\ref{fig:carga} reúne a alteração do número de réplicas, o comando de carga e a contagem obtida no terminal.
 
-\begin{figure}[!ht]\centering \makebox[\linewidth][c]{\includegraphics[width=1.11\linewidth]{figuras/56-escala-carga.png}}\\[2pt]\caption{O ensaio inicia com a expansão para dez, confirma o rollout e agrega as respostas pelo indicador do banco. O paralelismo máximo solicitado foi vinte.}\label{fig:carga}\end{figure}
+\begin{figure}[!ht]\centering \includegraphics[width=\linewidth]{figuras/56-escala-carga.png}\\[2pt]\caption{O ensaio inicia com a expansão para dez, confirma o rollout e agrega as respostas pelo indicador do banco. O paralelismo máximo solicitado foi vinte.}\label{fig:carga}\end{figure}
 
 \FloatBarrier\subsection{Recriação do banco e continuidade das visitas}\label{sec:dados}
 {\interlinepenalty=10000 Enquanto a remoção de uma réplica HTTP deixa outras aptas a gravar, a remoção da única instância do PostgreSQL interrompe a dependência comum a todas elas. Para observar essa diferença, a equipe acumulou visitas, leu a contagem, removeu o pod do banco e consultou a mesma rota durante sua recriação. A API continuou a devolver HTTP 200, mas indicou banco indisponível e contagem nula. A sequência da Figura~\ref{fig:queda} permite confrontar as duas camadas na mesma execução.\par}
 Após o novo postgres-0 atingir a condição Ready, uma consulta voltou a registrar uma visita. As cinco comparações antes/depois foram 314/315, 260/261, 282/283, 502/503 e 524/525. Em todas, a primeira leitura posterior foi compatível com a conservação da contagem anterior acrescida da nova visita. Os registros detalhados das três primeiras execuções permitem confrontar o estado do banco e a identidade do PVC com a sequência de respostas. Para as duas últimas, o material disponível registra os pares no CSV.
 
 Há dois resultados distintos. A separação entre prontidão HTTP e prontidão do banco permitiu que a interface explicasse a degradação. A remontagem do volume permitiu retomar o contador a partir do estado anteriormente observado. A contagem agregada não revela se cada identificador e cada conteúdo de linha permaneceram idênticos. O teste também conserva o armazenamento e o nó; não verifica restauração de backup nem recuperação após perda física do volume.
-\begin{figure}[H]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.28\textheight,keepaspectratio]{figuras/22-antes-queda.png}}\\[2pt]
-\makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.28\textheight,keepaspectratio]{figuras/22-durante-queda.png}}\\[2pt]
-\makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.28\textheight,keepaspectratio]{figuras/22-depois-recuperado.png}}\\[2pt]\caption{Execução 2, em ordem temporal. A API retorna 260 antes da exclusão. Durante a recriação, responde HTTP 200 com contador nulo. Após a espera por Ready, a consulta registra 261.}\label{fig:queda}\end{figure}
+\begin{figure}[H]\centering \includegraphics[width=\linewidth]{figuras/22-antes-queda.png}\\[2pt]
+\includegraphics[width=\linewidth]{figuras/22-durante-queda.png}\\[2pt]
+\includegraphics[width=\linewidth]{figuras/22-depois-recuperado.png}\\[2pt]\caption{Execução 2, em ordem temporal. A API retorna 260 antes da exclusão. Durante a recriação, responde HTTP 200 com contador nulo. Após a espera por Ready, a consulta registra 261.}\label{fig:queda}\end{figure}
+
+\par\noindent\begin{minipage}{\linewidth}\begin{lstlisting}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":260,"db":"ok","timestamp":"2026-10-29T23:40:50Z"}
+HTTP/1.1 200 OK
+{"pod":"api-64fb6b9464-pl5v6","pod_ip":"10.244.54.196","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":null,"db":"indisponível","timestamp":"2026-10-29T23:40:52Z"}
+{"pod":"api-64fb6b9464-9875j","pod_ip":"10.244.54.197","node":"ha-teste","version":"1.0","message":"Olá, turma de SO!","color":"#2e86de","visits":261,"db":"ok","timestamp":"2026-10-29T23:40:58Z"}
+\end{lstlisting}
+\end{minipage}\par
 
 A Figura~\ref{fig:degradado} mostra como o painel comunicou essa diferença ao usuário.
 \begin{figure}[H]\centering\includegraphics[width=.79\linewidth]{figuras/22-painel-banco-fora.png}
@@ -78,7 +87,7 @@ A Figura~\ref{fig:degradado} mostra como o painel comunicou essa diferença ao u
 
 
 A Figura~\ref{fig:pvc} identifica o objeto de armazenamento usado na comparação. A saída deve ser lida em conjunto com as consultas de PVC antes e depois, pois uma captura isolada identifica o claim em apenas um instante. A Tabela~\ref{tab:pvc-uid} compara as duas leituras de cada execução.
-\begin{figure}[H]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.39\textheight,keepaspectratio]{figuras/22-pvc-preservado.png}}\\[2pt]\caption{Nome, UID e data de criação do PVC associado a postgres-0. O vínculo permite distinguir substituição do pod de substituição do volume.}\label{fig:pvc}\end{figure}
+\begin{figure}[H]\centering \includegraphics[width=\linewidth,height=0.39\textheight,keepaspectratio]{figuras/22-pvc-preservado.png}\\[2pt]\caption{Nome, UID e data de criação do PVC associado a postgres-0. O vínculo permite distinguir substituição do pod de substituição do volume.}\label{fig:pvc}\end{figure}
 
 \par\noindent\begin{minipage}{\linewidth}\begin{lstlisting}
 $ kubectl delete pod postgres-0 -n ha-demo
@@ -108,15 +117,15 @@ O grupo então retirou a política, repetiu a sondagem pelo cliente antes bloque
 \begin{figure}[H]\centering\includegraphics[width=\linewidth]{figuras/23-controle.png}
 \caption{Contraprova com o mesmo cliente e destino. A sondagem retorna conexão aberta sem a política e timeout depois de reaplicá-la.}\label{fig:rede}\end{figure}
 \FloatBarrier\subsection{Elasticidade acionada pela utilização de CPU}
-Na escala manual, a quantidade final é uma decisão do operador. Aqui a equipe aplicou um HPA ao Deployment, observou três réplicas em repouso e iniciou um gerador com seis fluxos para uma rota que consome CPU. A variável usada pelo controlador é a utilização relativa ao pedido de CPU das réplicas. Um valor acima de 100\% é possível porque o pedido usado como referência é inferior ao limite de execução.
+Na escala manual, a quantidade final é uma decisão do operador. Aqui a equipe aplicou um HPA ao Deployment (\texttt{kubectl apply -f extras/50-hpa.yaml}), observou três réplicas em repouso e iniciou um gerador com seis fluxos para uma rota que consome CPU. A variável usada pelo controlador é a utilização relativa ao pedido de CPU das réplicas. Um valor acima de 100\% é possível porque o pedido usado como referência é inferior ao limite de execução.
 
 As Figuras~\ref{fig:hpa1} e~\ref{fig:hpa2} acompanham os dois sentidos da mudança. O comando de carga aparece no terminal junto da mensagem que identifica seis fluxos.
-\begin{figure}[!ht]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-antes.png}}\\[2pt]
-\makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-escalando.png}}\\[2pt]\caption{De cima para baixo, aplicação do HPA e observação sob carga. A coluna REPLICAS passa por 3, 6 e 10; TARGETS compara a utilização medida à meta.}\label{fig:hpa1}\end{figure}
+\begin{figure}[!ht]\centering \includegraphics[width=\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-antes.png}\\[2pt]
+\includegraphics[width=\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-escalando.png}\\[2pt]\caption{De cima para baixo, aplicação do HPA e observação sob carga. A coluna REPLICAS passa por 3, 6 e 10; TARGETS compara a utilização medida à meta.}\label{fig:hpa1}\end{figure}
 
 Em repouso, o controlador registrou 2\% para uma meta de 50\%. Sob carga, a utilização chegou a 230\%, e a contagem passou de três a seis e depois a dez réplicas, o teto configurado. A utilização ainda estava em 133\% em uma observação posterior com dez réplicas. A expansão evidencia a atuação do controlador e ilustra uma limitação importante: atingir o máximo permitido pode deixar a medida acima da meta. Depois de encerrar a carga, o registro mostra 2\% ainda com dez réplicas e, mais tarde, 2\% com três. O retorno posterior à queda da métrica é compatível com uma decisão de redução estabilizada. Os instantes da saída são idades do recurso; não medem a latência de uma solicitação de usuário.
 
-\begin{figure}[!ht]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-reducao.png}}\\[2pt]\caption{O terminal mostra o início e a interrupção do gerador. Depois da remoção do pod de carga, a utilização cai e o Deployment retorna a três réplicas.}\label{fig:hpa2}\end{figure}
+\begin{figure}[!ht]\centering \includegraphics[width=\linewidth,height=.29\textheight,keepaspectratio]{figuras/25-hpa-reducao.png}\\[2pt]\caption{O terminal mostra o início e a interrupção do gerador. Depois da remoção do pod de carga, a utilização cai e o Deployment retorna a três réplicas.}\label{fig:hpa2}\end{figure}
 
 \FloatBarrier\subsection{Disponibilidade de imagens e verificação da implantação}
 {\interlinepenalty=10000 A reconciliação depende de haver uma imagem utilizável pelo nó. O controle negativo introduziu uma tag inexistente para o banco. O script aplicou os recursos, mas a espera pela atualização do StatefulSet expirou, o pod ficou em ImagePullBackOff e o processo terminou com saída 1. A aceitação dos recursos, portanto, não assegurou o início da carga de trabalho.\par}
@@ -127,6 +136,6 @@ A Figura~\ref{fig:pull} registra o erro controlado. ImagePullBackOff indica que 
 O teste offline examinou a condição oposta. A equipe preparou as imagens antes de bloquear a saída do nó, verificou que a conexão ao registro externo falhava e então recriou o ambiente. As réplicas da API e o banco chegaram a Running, e o gerador de carga pôde iniciar. Em outra execução, a equipe removeu apenas o pod do banco sob bloqueio e aguardou sua prontidão. O evento de inicialização confirmou o uso da imagem local (Figura~\ref{fig:offline}). O ensaio pressupõe imagens previamente carregadas; a instalação em nó vazio e desconectado permanece sem verificação.
 
 
-\begin{figure}[H]\centering \makebox[\linewidth][c]{\includegraphics[width=1.09\linewidth,height=0.39\textheight,keepaspectratio]{figuras/56-offline-teste.png}}\\[2pt]\caption{Recriação do pod do PostgreSQL com o registro externo inacessível. A última linha do evento identifica a imagem já presente no nó.}\label{fig:offline}\end{figure}
+\begin{figure}[H]\centering \includegraphics[width=\linewidth,height=0.39\textheight,keepaspectratio]{figuras/56-offline-teste.png}\\[2pt]\caption{Recriação do pod do PostgreSQL com o registro externo inacessível. A última linha do evento identifica a imagem já presente no nó.}\label{fig:offline}\end{figure}
 
 Uma inspeção adicional do banco em execução confirmou o pedido de memória de 256 Mi, o limite de 512 Mi e as sondas locais de prontidão e vivacidade. A sondagem documenta parâmetros ativos. Para atribuir um reinício à vivacidade seria preciso registrar a falha da sonda e o incremento do número de reinícios do contêiner. A exclusão de um pod no experimento de reposição exercita outro mecanismo.
