@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>API · alta disponibilidade</title>
+  <title>Bilheteria · Festival Orquestra 2026</title>
   <link rel="icon" href="data:,">
   <style>
     :root {
@@ -23,7 +23,7 @@
       min-width: 320px;
       min-height: 100vh;
       margin: 0;
-      padding: 20px clamp(18px, 5vw, 72px) 20px;
+      padding: 12px clamp(18px, 5vw, 72px) 8px;
       color: var(--ink);
       background-color: #2e86de;
       background-image: radial-gradient(rgba(255, 255, 255, .13) 1px, transparent 1px);
@@ -89,11 +89,11 @@
 
     .hero {
       display: flex;
-      min-height: 136px;
+      min-height: 120px;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 14px 0 18px;
+      padding: 4px 0 14px;
       text-align: center;
       color: #fff;
     }
@@ -154,7 +154,7 @@
     .pods-section,
     .responses-section,
     .rollout-section { color: #fff; }
-    .dashboard { margin-top: 22px; }
+    .dashboard { margin-top: 16px; }
     .dashboard h2,
     .pods-section h2,
     .responses-section h2,
@@ -169,7 +169,7 @@
     }
     .metric-label { display: block; color: rgba(255, 255, 255, .78); font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     .metric-value { display: block; margin-top: 5px; font-size: clamp(1.45rem, 3vw, 2rem); font-variant-numeric: tabular-nums; font-weight: 800; }
-    .pods-section { margin-top: 20px; }
+    .pods-section { margin-top: 14px; }
     .pod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
     .pod-card {
       position: relative;
@@ -212,7 +212,7 @@
       letter-spacing: .04em;
     }
     .empty-state { margin: 0; padding: 16px 0; color: rgba(255, 255, 255, .82); font-size: .92rem; }
-    .responses-section { margin-top: 20px; padding-bottom: 12px; }
+    .responses-section { margin-top: 14px; padding-bottom: 8px; }
     .response-track { display: flex; min-height: 24px; flex-wrap: wrap; gap: 6px; }
     .response-tile { width: 17px; height: 17px; border: 1px solid rgba(255, 255, 255, .75); border-radius: 2px; }
     .response-tile.is-failure { background: repeating-linear-gradient(135deg, #fff 0 3px, #d7263d 3px 6px); }
@@ -233,6 +233,35 @@
     }
     .rollout-seg.is-dark-text { color: #102629; }
     .rollout-note { margin: 10px 0 0; color: var(--muted); font-size: .92rem; font-weight: 650; }
+    /* Demo bilheteria: rótulo duplo (história + termo Kubernetes) */
+    .k8s {
+      display: block;
+      margin-top: 3px;
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: .62rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      text-transform: none;
+      opacity: .72;
+    }
+    .k8s-inline { display: inline; margin: 0 0 0 6px; }
+    .wordmark .k8s { margin-top: 1px; }
+    .wordmark-text { display: flex; flex-direction: column; }
+    .connection .k8s { display: inline; margin: 0 0 0 4px; }
+    .pod-card.is-closed { border-color: #f2aaa4; border-top-color: #d7263d; background: #fde8e6; }
+    .pod-card.is-closed .pod-suffix { color: #9d2824; text-decoration: line-through; text-decoration-thickness: 2px; }
+    .pod-card.is-closed .pod-badge { background: #d7263d; }
+    .pod-card.is-closed .pod-version { filter: grayscale(1); opacity: .6; }
+    .pod-k8s { display: inline-block; margin: 8px 0 0 8px; color: var(--muted); font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: .6rem; }
+    .capacity-section { margin-top: 12px; padding: 12px 18px 12px; border-radius: 4px; background: var(--paper); box-shadow: 0 8px 22px rgba(10, 31, 35, .13); }
+    .capacity-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; margin-bottom: 8px; }
+    .capacity-head h2 { margin: 0; color: var(--muted); font-size: .7rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .capacity-head h2 .k8s { display: inline; margin-left: 6px; }
+    .capacity-text { font-size: .9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .capacity-bar { height: 16px; overflow: hidden; border-radius: 999px; background: #e7eef2; }
+    .capacity-fill { width: 0; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #0e8b61, #2e86de); transition: width 600ms ease, background 350ms ease; }
+    .capacity-fill.is-stale { background: #9aa7a9; }
+    .capacity-sold { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #d7263d; color: #fff; font-size: .62rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; vertical-align: middle; }
     @keyframes appear { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     body.is-light { color: var(--ink); background-image: radial-gradient(rgba(16, 38, 41, .16) 1px, transparent 1px); }
@@ -278,16 +307,16 @@
 <body>
   <div class="page">
     <header class="topbar">
-      <div class="wordmark">Alta disponibilidade</div>
+      <div class="wordmark"><span class="wordmark-text">Bilheteria · Festival Orquestra 2026<span class="k8s">alta disponibilidade no Kubernetes</span></span></div>
       <div class="status-chips">
-        <div id="db-status" class="connection db-status" role="status">Banco</div>
+        <div id="db-status" class="connection db-status" role="status" title="PostgreSQL">Pagamentos</div>
         <div id="connection" class="connection" role="status" aria-live="polite">Conectando</div>
       </div>
     </header>
 
     <main>
       <section class="hero" aria-labelledby="pod-name">
-        <p class="eyebrow">Pod respondendo agora</p>
+        <p class="eyebrow">Guichê que te atendeu<span class="k8s">pod que respondeu esta requisição (via Service)</span></p>
         <h1 id="pod-name">{{ pod }}</h1>
         <p id="message" class="message">{{ message }}</p>
       </section>
@@ -295,35 +324,45 @@
       <p id="error-notice" class="notice" role="alert" hidden>Sem resposta</p>
 
       <dl class="details" aria-label="Detalhes da resposta">
-        <div class="detail"><dt>Endereço IP</dt><dd id="pod-ip">{{ pod_ip }}</dd></div>
-        <div class="detail"><dt>Nó</dt><dd id="node">{{ node }}</dd></div>
-        <div class="detail"><dt>Versão</dt><dd id="version">{{ version }}</dd></div>
+        <div class="detail"><dt>Endereço IP<span class="k8s">IP do pod</span></dt><dd id="pod-ip">{{ pod_ip }}</dd></div>
+        <div class="detail"><dt>Nó<span class="k8s">node do cluster</span></dt><dd id="node">{{ node }}</dd></div>
+        <div class="detail"><dt>Versão do site<span class="k8s">imagem / ConfigMap</span></dt><dd id="version">{{ version }}</dd></div>
         <div class="detail">
-          <dt>Total de visitas <span id="db-pill" class="db-pill" hidden>ok</span></dt>
+          <dt>Ingressos vendidos <span id="db-pill" class="db-pill" hidden>ok</span><span class="k8s">visitas salvas no PostgreSQL (PVC)</span></dt>
           <dd id="visits">Aguardando</dd>
           <p id="visits-note" class="visits-note" hidden></p>
         </div>
       </dl>
 
+      <section class="capacity-section" aria-labelledby="capacity-title">
+        <div class="capacity-head">
+          <h2 id="capacity-title">Lotação do show<span class="k8s">contador persistente no banco</span></h2>
+          <span id="capacity-text" class="capacity-text">Aguardando vendas</span>
+        </div>
+        <div class="capacity-bar" role="progressbar" aria-labelledby="capacity-title" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="capacity-bar">
+          <div id="capacity-fill" class="capacity-fill"></div>
+        </div>
+      </section>
+
       <section class="dashboard" aria-labelledby="metrics-title">
-        <h2 id="metrics-title">Monitoramento em tempo real</h2>
+        <h2 id="metrics-title">Fila da bilheteria ao vivo<span class="k8s k8s-inline">monitoramento das requisições</span></h2>
         <div class="metrics">
-          <div class="metric"><span class="metric-label">Requisições</span><strong id="request-count" class="metric-value">0</strong></div>
-          <div class="metric"><span class="metric-label">Falhas</span><strong id="failure-count" class="metric-value">0</strong></div>
-          <div class="metric"><span class="metric-label">Média · últimas 50</span><strong id="average-time" class="metric-value">— ms</strong></div>
-          <div class="metric"><span class="metric-label">Pods respondendo</span><strong id="active-count" class="metric-value">0</strong></div>
+          <div class="metric"><span class="metric-label">Clientes atendidos<span class="k8s">requisições</span></span><strong id="request-count" class="metric-value">0</strong></div>
+          <div class="metric"><span class="metric-label">Clientes sem resposta<span class="k8s">falhas</span></span><strong id="failure-count" class="metric-value">0</strong></div>
+          <div class="metric"><span class="metric-label">Tempo de atendimento<span class="k8s">latência média · últimas 50</span></span><strong id="average-time" class="metric-value">— ms</strong></div>
+          <div class="metric"><span class="metric-label">Guichês abertos<span class="k8s">pods prontos respondendo</span></span><strong id="active-count" class="metric-value">0</strong></div>
         </div>
       </section>
 
       <section class="pods-section" aria-labelledby="pods-title">
-        <h2 id="pods-title">Pods detectados</h2>
+        <h2 id="pods-title">Guichês<span class="k8s k8s-inline">pods / réplicas do Deployment</span></h2>
         <div id="pod-grid" class="pod-grid" aria-live="polite">
-          <p class="empty-state">Aguardando respostas</p>
+          <p class="empty-state">Aguardando os guichês abrirem</p>
         </div>
       </section>
 
       <section id="rollout-section" class="rollout-section" hidden aria-labelledby="rollout-title">
-        <h2 id="rollout-title">Atualização em andamento</h2>
+        <h2 id="rollout-title">Nova versão do site entrando no ar<span class="k8s k8s-inline">rolling update</span></h2>
         <div class="rollout-panel">
           <div id="rollout-bar" class="rollout-bar" role="img" aria-label="Proporção das versões"></div>
           <p id="rollout-note" class="rollout-note"></p>
@@ -331,8 +370,8 @@
       </section>
 
       <section class="responses-section" aria-labelledby="responses-title">
-        <h2 id="responses-title">Últimas 40 respostas</h2>
-        <div id="response-track" class="response-track" role="list" aria-label="Histórico de respostas"></div>
+        <h2 id="responses-title">Últimos clientes atendidos<span class="k8s k8s-inline">últimas 40 respostas · cor = guichê</span></h2>
+        <div id="response-track" class="response-track" role="list" aria-label="Histórico de atendimentos"></div>
       </section>
     </main>
   </div>
@@ -358,8 +397,18 @@
       responseTrack: document.querySelector("#response-track"),
       rolloutSection: document.querySelector("#rollout-section"),
       rolloutBar: document.querySelector("#rollout-bar"),
-      rolloutNote: document.querySelector("#rollout-note")
+      rolloutNote: document.querySelector("#rollout-note"),
+      capacityText: document.querySelector("#capacity-text"),
+      capacityBar: document.querySelector("#capacity-bar"),
+      capacityFill: document.querySelector("#capacity-fill")
     };
+
+    // Demo bilheteria: cada lote tem 1000 ingressos; quando esgota, abre o próximo.
+    const LOT_SIZE = 1000;
+    // Guichê sem atender há 8s fica vermelho ("fechou") e só some aos 30s,
+    // para dar tempo de o Deployment abrir o guichê substituto ("abriu") ao lado.
+    const CLOSED_AFTER_MS = 8000;
+    const REMOVE_AFTER_MS = 30000;
 
     const pods = new Map();
     const responseHistory = [];
@@ -425,9 +474,14 @@
       fields.dbPill.hidden = false;
       fields.dbPill.textContent = dbOk ? "ok" : "fora do ar";
       fields.dbPill.classList.toggle("is-down", !dbOk);
-      fields.dbStatus.textContent = dbOk ? "Banco ok" : "Banco fora do ar";
+      fields.dbStatus.replaceChildren(
+        dbOk ? "Pagamentos ok" : "Pagamentos temporariamente indisponíveis",
+        Object.assign(document.createElement("span"), { className: "k8s", textContent: "· PostgreSQL" })
+      );
       fields.dbStatus.classList.toggle("is-ok", dbOk);
       fields.dbStatus.classList.toggle("is-warn", !dbOk);
+
+      updateCapacity(dbOk);
 
       if (lastVisits === null) {
         fields.visits.textContent = "Aguardando";
@@ -436,10 +490,29 @@
         return;
       }
 
-      fields.visits.textContent = String(lastVisits);
+      fields.visits.textContent = lastVisits.toLocaleString("pt-BR");
       fields.visits.classList.toggle("is-stale", !dbOk);
       fields.visitsNote.hidden = dbOk;
-      if (!dbOk) fields.visitsNote.textContent = "último valor salvo · aguardando o banco";
+      if (!dbOk) fields.visitsNote.textContent = "Nenhuma venda perdida · aguardando o sistema de pagamento voltar";
+    }
+
+    function updateCapacity(dbOk) {
+      if (lastVisits === null) return;
+      const lot = Math.floor(lastVisits / LOT_SIZE) + 1;
+      const soldInLot = lastVisits % LOT_SIZE;
+      const percent = Math.round(soldInLot / LOT_SIZE * 100);
+      fields.capacityFill.style.width = `${soldInLot / LOT_SIZE * 100}%`;
+      fields.capacityFill.classList.toggle("is-stale", !dbOk);
+      fields.capacityBar.setAttribute("aria-valuenow", String(percent));
+      fields.capacityText.replaceChildren(
+        `${lot}º lote: ${soldInLot.toLocaleString("pt-BR")} de ${LOT_SIZE.toLocaleString("pt-BR")} (${percent}%)`
+      );
+      if (lot > 1) {
+        const sold = document.createElement("span");
+        sold.className = "capacity-sold";
+        sold.textContent = lot === 2 ? "1º lote esgotado" : `${lot - 1} lotes esgotados`;
+        fields.capacityText.append(sold);
+      }
     }
 
     function createPodCard(podName, now) {
@@ -448,6 +521,7 @@
       const prefix = document.createElement("span");
       const suffix = document.createElement("strong");
       const versionBadge = document.createElement("span");
+      const k8sLabel = document.createElement("span");
       const separator = podName.lastIndexOf("-");
 
       card.className = "pod-card is-new";
@@ -455,14 +529,16 @@
       podOrder += 1;
       card.title = podName;
       badge.className = "pod-badge";
-      badge.textContent = "NOVO";
+      badge.textContent = "abriu";
       prefix.className = "pod-prefix";
       prefix.textContent = separator >= 0 ? podName.slice(0, separator + 1) : "POD";
       suffix.className = "pod-suffix";
       suffix.textContent = separator >= 0 ? podName.slice(separator + 1) : podName;
       versionBadge.className = "pod-version";
       versionBadge.hidden = true;
-      card.append(badge, prefix, suffix, versionBadge);
+      k8sLabel.className = "pod-k8s";
+      k8sLabel.textContent = "pod (réplica)";
+      card.append(badge, prefix, suffix, versionBadge, k8sLabel);
       fields.podGrid.querySelector(".empty-state")?.remove();
       fields.podGrid.append(card);
       return { card, badge, versionBadge, firstSeen: now, lastSeen: now, color: card.style.getPropertyValue("--pod-color") };
@@ -486,7 +562,7 @@
       fields.requestCount.textContent = String(requestCount);
       fields.failureCount.textContent = String(failureCount);
       fields.averageTime.textContent = average === null ? "— ms" : `${Math.round(average)} ms`;
-      fields.activeCount.textContent = String([...pods.values()].filter(pod => Date.now() - pod.lastSeen <= 8000).length);
+      fields.activeCount.textContent = String([...pods.values()].filter(pod => Date.now() - pod.lastSeen <= CLOSED_AFTER_MS).length);
     }
 
     function renderResponseHistory() {
@@ -495,8 +571,8 @@
         const tile = document.createElement("span");
         tile.className = response.ok ? "response-tile" : "response-tile is-failure";
         tile.setAttribute("role", "listitem");
-        tile.setAttribute("aria-label", response.ok ? `Sucesso: ${response.pod}` : "Falha");
-        tile.title = response.ok ? `Sucesso · ${response.pod}` : "Falha na requisição";
+        tile.setAttribute("aria-label", response.ok ? `Atendido pelo guichê ${response.pod}` : "Cliente sem resposta");
+        tile.title = response.ok ? `Atendido · ${response.pod}` : "Cliente sem resposta (falha na requisição)";
         if (response.ok) tile.style.backgroundColor = response.color;
         fields.responseTrack.append(tile);
       }
@@ -506,13 +582,20 @@
       const now = Date.now();
       for (const [podName, pod] of pods) {
         const silence = now - pod.lastSeen;
-        if (silence > 15000) {
+        if (silence > REMOVE_AFTER_MS) {
           pod.card.remove();
           pods.delete(podName);
           continue;
         }
-        pod.card.classList.toggle("is-stale", silence > 8000);
-        pod.badge.hidden = now - pod.firstSeen >= 6000;
+        const closed = silence > CLOSED_AFTER_MS;
+        pod.card.classList.toggle("is-closed", closed);
+        if (closed) {
+          pod.badge.textContent = "fechou";
+          pod.badge.hidden = false;
+        } else {
+          pod.badge.textContent = "abriu";
+          pod.badge.hidden = now - pod.firstSeen >= 6000;
+        }
       }
       updateMetrics();
       setTimeout(updatePodLifecycle, 250);
@@ -580,7 +663,7 @@
       }
       const newest = sorted[sorted.length - 1];
       const newestPercent = Math.round(newest[1].count / total * 100);
-      fields.rolloutNote.textContent = `A ${formatVersion(newest[0])} já responde ${newestPercent}% das últimas ${total} requisições.`;
+      fields.rolloutNote.textContent = `A ${formatVersion(newest[0])} já atende ${newestPercent}% dos últimos ${total} clientes (requisições).`;
     }
 
     async function runMonitor() {
@@ -617,7 +700,7 @@
         fields.connection.classList.toggle("is-error", successes === 0);
         fields.connection.textContent = successes ? "Ao vivo" : "Sem resposta";
         fields.error.hidden = roundFailures === 0;
-        if (roundFailures) fields.error.textContent = `${roundFailures} ${roundFailures === 1 ? "falha" : "falhas"} nesta rodada`;
+        if (roundFailures) fields.error.textContent = `${roundFailures} ${roundFailures === 1 ? "cliente sem resposta" : "clientes sem resposta"} nesta rodada`;
         updateMetrics();
 
         await new Promise(resolve => setTimeout(resolve, Math.max(0, 1000 - (Date.now() - roundStartedAt))));

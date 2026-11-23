@@ -29,7 +29,7 @@ spec:
             allowPrivilegeEscalation: false
       containers:
         - name: api
-          image: api:1.6              # correções finais (#36): gunicorn, painel e dependências fixas
+          image: api:1.7              # demo bilheteria: painel reenquadrado como venda de ingressos
           imagePullPolicy: IfNotPresent # imagem local do Minikube, não baixa do Docker Hub
           ports: [{ containerPort: 8080 }]
           securityContext:            # imagem roda com USER app (não-root) na porta 8080 (AUD-12)
